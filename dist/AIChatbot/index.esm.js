@@ -33887,7 +33887,7 @@ const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxIniti
     const [additionalQuestions, setAdditionalQuestions] = useState([]);
     const [showMore, setShowMore] = useState(false);
     const [questionsLoaded, setQuestionsLoaded] = useState(false);
-    const processQuestions = useCallback(() => {
+    useEffect(() => {
         // Default fallback questions with more variety to show the grid
         const fallbackQuestions = [
             {
@@ -34038,9 +34038,6 @@ const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxIniti
         setAdditionalQuestions(sortedQuestions.slice(maxInitialQuestions));
         setQuestionsLoaded(true);
     }, [questions, maxInitialQuestions]);
-    useEffect(() => {
-        processQuestions();
-    }, [processQuestions]);
     const handleToggleMore = () => {
         setShowMore(!showMore);
     };

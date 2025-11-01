@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../shared/components/ui/button";
 import { Badge } from "../../shared/components/ui/badge";
 import {
@@ -34,7 +34,7 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
   const [showMore, setShowMore] = useState(false);
   const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
-  const processQuestions = useCallback(() => {
+  useEffect(() => {
     // Default fallback questions with more variety to show the grid
     const fallbackQuestions: ChatQuestion[] = [
       {
@@ -187,10 +187,6 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
     setAdditionalQuestions(sortedQuestions.slice(maxInitialQuestions));
     setQuestionsLoaded(true);
   }, [questions, maxInitialQuestions]);
-
-  useEffect(() => {
-    processQuestions();
-  }, [processQuestions]);
 
   const handleToggleMore = () => {
     setShowMore(!showMore);
