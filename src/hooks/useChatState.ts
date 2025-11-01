@@ -1,0 +1,339 @@
+// Custom hook for managing chat state
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { 
+  ChatMessage, 
+  ChatProvider, 
+  ChatState, 
+  ChatActions, 
+  ChatbotConfig,
+  ChatContext,
+  ChatResponse 
+} from '../types';
+import { ChatbotError } from '../types';
+
+interface UseChatStateOptions {
+  provider: ChatProvider;
+  config?: ChatbotConfig;
+  onMessageSent?: (message: string) => void;
+  onMessageReceived?: (response: ChatResponse) => void;
+  onError?: (error: Error) => void;
+  user?: { id: string; email?: string; name?: string; } | null;
+}
+
+export function useChatState({
+  provider,
+  config = {},
+  onMessageSent,
+  onMessageReceived,
+  onError,
+  user
+}: UseChatStateOptions): ChatState & ChatActions {
+  
+  // Core state
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
+    provider.getAvailableAgents?.()?.[0]
+  );
+  const [lastResponse, setLastResponse] = useState<ChatResponse | null>(null);
+  const [streamingMetrics, setStreamingMetrics] = useState<{
+    timeToFirstChunk?: number;
+    totalStreamingTime?: number;
+    chunks?: number;
+    averageChunkTime?: number;
+  } | null>(null);
+  
+  // Refs for managing state during async operations
+  const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streamingCompletedRef = useRef(false);
+  
+  // Initialize session
+  useEffect(() => {
+    if (!sessionId) {
+      setSessionId(uuidv4());
+    }
+  }, [sessionId]);
+  
+  // Cleanup streaming timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (streamingTimeoutRef.current) {
+        clearTimeout(streamingTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  /**
+   * Handle streaming timeout
+   */
+  const handleStreamingTimeout = useCallback(() => {
+    setIsStreaming(false);
+    setStreamingMessage('');
+    
+    // Try to get a regular response as fallback
+    const lastUserMessage = messages.filter(msg => msg.role === 'user').pop();
+    if (lastUserMessage) {
+      // Remove loading message and retry with regular send
+      setMessages(prev => prev.filter(msg => !msg.isLoading));
+      
+      // Use regular sendMessage as fallback
+      const context: ChatContext = {
+        conversationHistory: messages.filter(m => !m.isLoading),
+        sessionId: sessionId || uuidv4(),
+        userId: user?.id,
+      };
+      
+      provider.sendMessage(lastUserMessage.content, context, { ...config, enableStreaming: false })
+        .then(response => {
+          setIsLoading(false);
+          
+          const assistantMessage: ChatMessage = {
+            id: uuidv4(),
+            content: response.answer,
+            role: 'assistant',
+            timestamp: new Date(),
+            sources: response.sources,
+            knowledgeBreakdown: response.knowledgeBreakdown,
+          };
+          
+          setMessages(prev => [...prev, assistantMessage]);
+          setLastResponse(response);
+          onMessageReceived?.(response);
+        })
+        .catch(err => {
+          setIsLoading(false);
+          const error = err instanceof Error ? err : new Error('Fallback request failed');
+          setError(error.message);
+          onError?.(error);
+        });
+    }
+  }, [messages, sessionId, user, provider, config, onMessageReceived, onError]);
+
+  /**
+   * Send a message
+   */
+  const sendMessage = useCallback(async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
+    
+    try {
+      setError(null);
+      setIsLoading(true);
+      setIsStreaming(false);
+      setStreamingMessage('');
+      streamingCompletedRef.current = false;
+      
+      // Add user message immediately
+      const userMessage: ChatMessage = {
+        id: uuidv4(),
+        content: messageText.trim(),
+        role: 'user',
+        timestamp: new Date(),
+      };
+      
+      // Add loading assistant message
+      const loadingMessage: ChatMessage = {
+        id: uuidv4(),
+        content: '',
+        role: 'assistant',
+        timestamp: new Date(),
+        isLoading: true,
+      };
+      
+      setMessages(prev => [...prev, userMessage, loadingMessage]);
+      
+      // Notify callback
+      onMessageSent?.(messageText);
+      
+      // Prepare context
+      const context: ChatContext = {
+        conversationHistory: messages.filter(m => !m.isLoading),
+        sessionId: sessionId || uuidv4(),
+        userId: user?.id,
+      };
+      
+      // Try streaming first if supported and enabled
+      if (provider.streamMessage && config.enableStreaming !== false) {
+        setIsStreaming(true);
+        
+        // Set streaming timeout
+        streamingTimeoutRef.current = setTimeout(() => {
+          if (!streamingCompletedRef.current) {
+            console.warn('Streaming timeout - falling back to regular response');
+            handleStreamingTimeout();
+          }
+        }, 30000); // 30 second timeout
+        
+        await provider.streamMessage(
+          messageText,
+          context,
+          (chunk: string) => {
+            setStreamingMessage((prev) => prev + chunk);
+          },
+          (response) => {
+            // Clear timeout
+            if (streamingTimeoutRef.current) {
+              clearTimeout(streamingTimeoutRef.current);
+              streamingTimeoutRef.current = null;
+            }
+            
+            streamingCompletedRef.current = true;
+            setIsStreaming(false);
+            setIsLoading(false);
+            setStreamingMessage('');
+            
+            // Replace loading message with actual response
+            setMessages(prev => {
+              const filtered = prev.filter(msg => !msg.isLoading);
+              const assistantMessage: ChatMessage = {
+                id: uuidv4(),
+                content: response.answer,
+                role: 'assistant',
+                timestamp: new Date(),
+                sources: response.sources,
+                knowledgeBreakdown: response.knowledgeBreakdown,
+              };
+              return [...filtered, assistantMessage];
+            });
+            
+            setLastResponse(response);
+            onMessageReceived?.(response);
+          },
+          config
+        );
+        
+      } else {
+        // Fallback to regular message sending
+        const response = await provider.sendMessage(messageText, context, config);
+        
+        setIsLoading(false);
+        
+        // Replace loading message with actual response
+        setMessages(prev => {
+          const filtered = prev.filter(msg => !msg.isLoading);
+          const assistantMessage: ChatMessage = {
+            id: uuidv4(),
+            content: response.answer,
+            role: 'assistant',
+            timestamp: new Date(),
+            sources: response.sources,
+            knowledgeBreakdown: response.knowledgeBreakdown,
+          };
+          return [...filtered, assistantMessage];
+        });
+        
+        setLastResponse(response);
+        onMessageReceived?.(response);
+      }
+      
+    } catch (err) {
+      setIsLoading(false);
+      setIsStreaming(false);
+      setStreamingMessage('');
+      
+      const error = err instanceof Error ? err : new Error('Unknown error occurred');
+      setError(error.message);
+      
+      // Replace loading message with error message
+      setMessages(prev => {
+        const filtered = prev.filter(msg => !msg.isLoading);
+        const errorMessage: ChatMessage = {
+          id: uuidv4(),
+          content: `Error: ${error.message}`,
+          role: 'assistant',
+          timestamp: new Date(),
+        };
+        return [...filtered, errorMessage];
+      });
+      
+      onError?.(error);
+    }
+  }, [
+    provider, 
+    config, 
+    messages, 
+    isLoading, 
+    sessionId, 
+    user, 
+    onMessageSent, 
+    onMessageReceived, 
+    onError,
+    handleStreamingTimeout
+  ]);
+  
+  /**
+   * Clear all messages
+   */
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setError(null);
+    setStreamingMessage('');
+    setIsLoading(false);
+    setIsStreaming(false);
+  }, []);
+  
+  /**
+   * Retry the last message
+   */
+  const retryLastMessage = useCallback(async () => {
+    const lastUserMessage = messages.filter(msg => msg.role === 'user').pop();
+    
+    if (lastUserMessage && config.retryEnabled !== false) {
+      // Remove the last assistant response (which was likely an error)
+      setMessages(prev => {
+        const userMessages = prev.filter(msg => msg.role === 'user');
+        const lastUserIndex = prev.findIndex(msg => msg.id === lastUserMessage.id);
+        return prev.slice(0, lastUserIndex + 1);
+      });
+      
+      // Resend the message
+      await sendMessage(lastUserMessage.content);
+    }
+  }, [messages, config.retryEnabled, sendMessage]);
+  
+  /**
+   * Switch agent (if supported)
+   */
+  const setSelectedAgentHandler = useCallback((agent: string) => {
+    if (provider.switchAgent) {
+      try {
+        provider.switchAgent(agent);
+        setSelectedAgent(agent);
+      } catch (error) {
+        onError?.(error instanceof Error ? error : new Error('Failed to switch agent'));
+      }
+    }
+  }, [provider, onError]);
+  
+  /**
+   * Start a new session
+   */
+  const startNewSession = useCallback(() => {
+    setSessionId(uuidv4());
+    clearMessages();
+  }, [clearMessages]);
+  
+  return {
+    // State
+    messages,
+    isLoading,
+    isStreaming,
+    streamingMessage,
+    error,
+    sessionId,
+    selectedAgent,
+    lastResponse,
+    streamingMetrics,
+    
+    // Actions
+    sendMessage,
+    clearMessages,
+    retryLastMessage,
+    setSelectedAgent: setSelectedAgentHandler,
+    startNewSession,
+  };
+}
