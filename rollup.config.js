@@ -64,11 +64,11 @@ export default [
     external: ['react', 'react-dom', 'firebase'],
   },
   
-  // Type definitions
-  {
-    input: 'dist/esm/types/index.d.ts',
-    output: [{ file: 'dist/index.d.ts', format: 'esm' }],
-    plugins: [dts()],
-    external: [/\.css$/],
-  },
+  // Type definitions - temporarily disabled
+  // {
+  //   input: 'dist/esm/types/index.d.ts',
+  //   output: [{ file: 'dist/index.d.ts', format: 'esm' }],
+  //   plugins: [dts()],
+  //   external: [/\.css$/],
+  // },
 ];

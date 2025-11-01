@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "../../shared/components/ui/button";
+import { Badge } from "../../shared/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "../../shared/components/ui/tooltip";
 import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { ChatQuestion } from "../types";
 

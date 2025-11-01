@@ -3,14 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ChatProvider, ChatbotConfig, AIChatbotProps } from './types';
 import { useChatState } from './hooks/useChatState';
 import { MessageBubble, ChatInput, TimingInfo, DynamicQuestions } from './components';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Card, CardContent, CardHeader, CardTitle } from '../shared/components/ui/card';
+import { Button } from '../shared/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../shared/components/ui/select';
+import { Badge } from '../shared/components/ui/badge';
+import { Alert, AlertDescription } from '../shared/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../shared/components/ui/tooltip';
 import { Bot, Sparkles, AlertCircle, RefreshCw, Info, Zap, Database, Cloud, Trash2 } from 'lucide-react';
-import { CumulativeTokenUsage } from '@/types/data';
+import { CumulativeTokenUsage } from '../shared/types';
 
 /**
  * AIChatbot - A reusable chat interface component

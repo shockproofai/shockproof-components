@@ -1,4 +1,5 @@
-// Shared utility functions for all ShockProof Components
+// Re-export all utility functions
+export * from './cn';
 
 export const classNames = (...classes: (string | undefined | null | false)[]): string => {
   return classes.filter(Boolean).join(' ');
