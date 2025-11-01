@@ -1,7 +1,7 @@
 {
-  "name": "@shockproofai/ai-chatbot-component",
+  "name": "@shockproofai/shockproof-components",
   "version": "1.0.0",
-  "description": "Reusable AI Chatbot Component for ShockProof AI applications",
+  "description": "Reusable React Components Library for ShockProof AI applications",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
   "types": "./dist/index.d.ts",
@@ -10,6 +10,11 @@
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./AIChatbot": {
+      "import": "./dist/AIChatbot/index.esm.js",
+      "require": "./dist/AIChatbot/index.js",
+      "types": "./dist/AIChatbot/index.d.ts"
     },
     "./styles": "./dist/styles.css"
   },
@@ -27,14 +32,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shockproofai/ai-chatbot-component.git"
+    "url": "git+https://github.com/shockproofai/shockproof-components.git"
   },
   "keywords": [
     "react",
+    "components",
     "chatbot",
     "ai",
     "firebase",
-    "typescript"
+    "typescript",
+    "ui-library"
   ],
   "author": "ShockProof AI",
   "license": "MIT",

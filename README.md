@@ -1,97 +1,105 @@
-# @shockproofai/ai-chatbot-component
+# @shockproofai/shockproof-components
 
-A reusable AI Chatbot React component for ShockProof AI applications with Firebase backend support.
+A comprehensive React components library for ShockProof AI applications. This library provides reusable, production-ready components with Firebase integration and TypeScript support.
 
-## Features
+## 🚀 Components
 
-- 🚀 **Streaming responses** with real-time content display
-- 🔧 **Configurable UI** with themes and customization options
-- 📊 **Performance metrics** with detailed timing and token usage
-- 🤖 **Multi-agent support** with agent switching capability
-- ❓ **Dynamic questions** with contextual suggestions
-- 🔒 **Firebase integration** with authentication support
-- 📱 **Responsive design** with mobile-friendly interface
-- ⚡ **TypeScript support** with full type safety
+### 🤖 AI Chatbot Component
+- **Streaming responses** with real-time content display
+- **Multi-agent support** with agent switching
+- **Performance metrics** with timing and token usage
+- **Dynamic questions** with contextual suggestions
+- **Firebase integration** with authentication
+- **Fully customizable** UI and behavior
 
-## Installation
+### 🔮 Future Components
+- Data Tables & Grids
+- Form Builder & Validation
+- Charts & Visualizations
+- Navigation & Layout
+- Authentication Components
 
-### Option 1: Git Dependency (Recommended for internal use)
+## 📦 Installation
+
+### Git Dependency (Recommended for internal use)
 
 ```bash
-npm install git+https://github.com/shockproofai/ai-chatbot-component.git#v1.0.0
+npm install git+https://github.com/shockproofai/shockproof-components.git#v1.0.0
 ```
 
-### Option 2: GitHub Packages
-
-```bash
-npm install @shockproofai/ai-chatbot-component
-```
-
-## Peer Dependencies
-
-Make sure you have these installed in your app:
+### Peer Dependencies
 
 ```bash
 npm install firebase react react-dom
 ```
 
-## Quick Start
+## 🚀 Quick Start
+
+### AI Chatbot
 
 ```tsx
 import React from 'react';
-import { AIChatbot, createFirebaseProvider } from '@shockproofai/ai-chatbot-component';
-import { chatService } from './services/ChatService'; // Your Firebase chat service
+import { AIChatbot, createFirebaseProvider } from '@shockproofai/shockproof-components';
+import '@shockproofai/shockproof-components/styles';
 
 function App() {
-  // Create Firebase provider
   const provider = React.useMemo(() => {
     return createFirebaseProvider({
-      chatService: chatService,
+      chatService: yourChatService,
       agentOptions: ['askRex', 'askRexTest'],
       authRequired: true
     });
   }, []);
 
-  // Component configuration
   const config = {
     title: "Ask Rex",
-    subtitle: "Ask questions about commercial lending and credit analysis",
+    subtitle: "AI Assistant for your domain",
     enableStreaming: true,
-    streamingThreshold: 300,
     enableSources: true,
     enableQuestions: true,
     showTimingInfo: true,
-    showAgentSwitcher: true,
-    theme: 'auto' as const,
-    placeholder: 'Ask a question...',
-    welcomeMessage: 'How can I help you today?'
+    theme: 'auto' as const
   };
 
   return (
     <div style={{ height: '100vh' }}>
-      <AIChatbot
-        provider={provider}
-        config={config}
-        onMessageSent={(message) => console.log('Sent:', message)}
-        onMessageReceived={(response) => console.log('Received:', response)}
-        onError={(error) => console.error('Error:', error)}
-      />
+      <AIChatbot provider={provider} config={config} />
     </div>
   );
 }
 ```
 
-## Configuration Options
+## 📖 Component Documentation
+
+### AIChatbot
+
+The AI Chatbot component provides a complete chat interface with streaming, sources, and performance metrics.
+
+#### Props
+
+```tsx
+interface AIChatbotProps {
+  provider: ChatProvider;
+  config: ChatbotConfig;
+  className?: string;
+  style?: React.CSSProperties;
+  onMessageSent?: (message: string) => void;
+  onMessageReceived?: (response: ChatResponse) => void;
+  onError?: (error: Error) => void;
+}
+```
+
+#### Configuration
 
 ```tsx
 interface ChatbotConfig {
-  // Core settings
-  enableStreaming?: boolean;        // Enable real-time streaming
-  streamingThreshold?: number;      // Min chars before streaming starts
-  enableSources?: boolean;          // Show source references
-  enableQuestions?: boolean;        // Show suggested questions
-  showTimingInfo?: boolean;         // Show performance metrics
-  showAgentSwitcher?: boolean;      // Show agent selection
+  // Core features
+  enableStreaming?: boolean;
+  streamingThreshold?: number;
+  enableSources?: boolean;
+  enableQuestions?: boolean;
+  showTimingInfo?: boolean;
+  showAgentSwitcher?: boolean;
   
   // UI customization
   theme?: 'light' | 'dark' | 'auto';
@@ -111,103 +119,176 @@ interface ChatbotConfig {
 }
 ```
 
-## Provider Setup
+## 🔌 Provider Setup
 
 ### Firebase Provider
 
 ```tsx
-import { createFirebaseProvider } from '@shockproofai/ai-chatbot-component';
+import { createFirebaseProvider } from '@shockproofai/shockproof-components';
 
 const provider = createFirebaseProvider({
-  chatService: yourChatService,     // Your Firebase chat service instance
-  agentOptions: ['askRex'],         // Available AI agents
-  authRequired: true,               // Require Firebase auth
-  enableQuestions: true,            // Enable question suggestions
-  enableSources: true,              // Enable source references
-  streamingThreshold: 300           // Default streaming threshold
+  chatService: yourChatService,    // Your existing ChatService
+  agentOptions: ['askRex'],        // Available agents
+  authRequired: true,              // Require authentication
+  enableQuestions: true,           // Enable dynamic questions
+  enableSources: true              // Enable source references
 });
 ```
 
-## Styling
+## 🎨 Import Patterns
 
-Import the CSS file in your app:
-
-```tsx
-import '@shockproofai/ai-chatbot-component/styles';
-```
-
-## Advanced Usage
-
-### Custom Message Handling
+### Full Library Import
 
 ```tsx
-<AIChatbot
-  provider={provider}
-  config={config}
-  onMessageSent={(message) => {
-    // Track message analytics
-    analytics.track('message_sent', { message });
-  }}
-  onMessageReceived={(response) => {
-    // Process response
-    console.log('Tokens used:', response.tokenUsage);
-    console.log('Response time:', response.timings);
-  }}
-  onError={(error) => {
-    // Handle errors
-    errorReporting.captureException(error);
-  }}
-/>
+import { AIChatbot, createFirebaseProvider } from '@shockproofai/shockproof-components';
 ```
 
-### Custom Styling
+### Component-Specific Import
 
 ```tsx
-<AIChatbot
-  className="my-custom-chatbot"
-  style={{ borderRadius: '12px' }}
-  provider={provider}
-  config={config}
-/>
+import { AIChatbot } from '@shockproofai/shockproof-components/AIChatbot';
 ```
 
-## Firebase Setup Requirements
+### Advanced Components
 
-Your Firebase project needs:
+```tsx
+import { 
+  MessageBubble, 
+  ChatInput, 
+  TimingInfo, 
+  useChatState 
+} from '@shockproofai/shockproof-components';
+```
 
-1. **Firebase Functions** for chat processing
-2. **Firestore** for conversation storage
-3. **Firebase Auth** for user authentication
-4. **ChatService** implementation (see examples)
+## 🏗️ Architecture
 
-## Version Tags
+### Component Structure
 
-Use specific version tags for stability:
+```
+shockproof-components/
+├── src/
+│   ├── AIChatbot/           # Complete chatbot component
+│   │   ├── AIChatbot.tsx    # Main component
+│   │   ├── components/      # Sub-components
+│   │   ├── hooks/           # Custom hooks
+│   │   ├── providers/       # Provider implementations
+│   │   └── types/           # TypeScript definitions
+│   ├── shared/              # Shared utilities
+│   │   ├── hooks/           # Common hooks
+│   │   ├── types/           # Common types
+│   │   └── utils/           # Utility functions
+│   └── styles/              # Global styles
+```
+
+### Firebase Integration
+
+- **Peer Dependencies**: Firebase managed by consuming apps
+- **Shared Project**: All apps use same Firebase configuration
+- **No Duplication**: Single Firebase SDK across applications
+- **Flexible Authentication**: Works with existing auth setup
+
+## 📱 App Integration
+
+### For Each ShockProof AI App
+
+```tsx
+// Use your existing Firebase setup - no changes needed
+import { chatService } from './services/ChatService';
+
+const provider = createFirebaseProvider({
+  chatService: chatService,  // Your existing service
+  agentOptions: ['askRex', 'askRexTest'],
+  authRequired: true
+});
+
+// Customize per app
+const config = {
+  title: "App-Specific Assistant",
+  subtitle: "Customized for your app domain",
+  welcomeMessage: "Welcome to [App Name]! How can I help?",
+  placeholder: "Ask about [your domain]..."
+};
+```
+
+## 🔄 Updates & Versioning
+
+### Update Component Library
 
 ```bash
-# Latest stable
-npm install git+https://github.com/shockproofai/ai-chatbot-component.git#v1.0.0
+# Create new version
+git tag v1.1.0
+git push origin v1.1.0
 
-# Development
-npm install git+https://github.com/shockproofai/ai-chatbot-component.git#main
+# Update in apps
+npm install git+https://github.com/shockproofai/shockproof-components.git#v1.1.0
 ```
 
-## Development
+### Version Strategy
+
+- **Major (v2.0.0)**: Breaking changes
+- **Minor (v1.1.0)**: New components or features
+- **Patch (v1.0.1)**: Bug fixes and improvements
+
+## 🏢 Monorepo Migration Ready
+
+When consolidating to monorepo:
+
+```json
+{
+  "dependencies": {
+    "@shockproofai/shockproof-components": "workspace:*"
+  }
+}
+```
+
+## 🛠️ Development
 
 ```bash
-# Clone the repo
-git clone https://github.com/shockproofai/ai-chatbot-component.git
+# Clone repository
+git clone https://github.com/shockproofai/shockproof-components.git
 
 # Install dependencies
 npm install
 
-# Build the component
+# Build library
 npm run build
 
 # Watch for changes
 npm run dev
+
+# Type checking
+npm run type-check
 ```
 
-## License
+## 📋 Roadmap
+
+### Phase 1 (Current)
+- ✅ AI Chatbot Component
+- ✅ Firebase Provider
+- ✅ TypeScript Support
+
+### Phase 2 (Future)
+- 📊 Data Table Component
+- 📝 Form Builder Component
+- 📈 Charts & Visualizations
+- 🎨 Theme System
+
+### Phase 3 (Future)
+- 🧭 Navigation Components
+- 🔐 Authentication Components
+- 📱 Mobile Optimizations
+- 🎛️ Advanced Customization
+
+## 🤝 Contributing
+
+For internal ShockProof AI development:
+
+1. Create feature branch
+2. Implement component with tests
+3. Update documentation
+4. Create pull request
+5. Tag release version
+
+## 📄 License
 
 MIT - Internal use for ShockProof AI applications

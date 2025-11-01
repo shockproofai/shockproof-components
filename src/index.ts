@@ -1,9 +1,19 @@
-// Main exports
-export { AIChatbot } from './AIChatbot';
-export { createFirebaseProvider } from './providers/FirebaseChatProvider';
+// ShockProof Components Library
+// Main exports for all reusable components
 
-// Type exports
-export type { 
+// === AI Chatbot Component ===
+export {
+  AIChatbot,
+  createFirebaseProvider,
+  useChatState,
+  MessageBubble,
+  ChatInput,
+  TimingInfo,
+  DynamicQuestions,
+  BaseChatProvider
+} from './AIChatbot';
+
+export type {
   ChatbotConfig,
   ChatMessage,
   ChatResponse,
@@ -11,16 +21,13 @@ export type {
   ChatContext,
   TokenUsage,
   StreamingMetrics
-} from './types';
+} from './AIChatbot';
 
-// Advanced exports for customization
-export { useChatState } from './hooks/useChatState';
-export { 
-  MessageBubble, 
-  ChatInput, 
-  TimingInfo, 
-  DynamicQuestions 
-} from './components';
+// === Future Components ===
+// export { DataTable } from './DataTable';
+// export { FormBuilder } from './FormBuilder';
+// export { Charts } from './Charts';
 
-// Provider base class for custom implementations
-export { BaseChatProvider } from './providers/ChatProvider';
+// === Shared Utilities ===
+// export { useLocalStorage, useDebounce } from './shared/hooks';
+// export type { BaseComponentProps } from './shared/types';
