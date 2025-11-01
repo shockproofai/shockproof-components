@@ -28,7 +28,8 @@
     "dev": "rollup -c -w",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
