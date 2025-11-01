@@ -5,20 +5,18 @@ import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import postcss from 'rollup-plugin-postcss';
 import dts from 'rollup-plugin-dts';
 
-const packageJson = require('./package.json');
-
 export default [
   // Main library build
   {
     input: 'src/index.ts',
     output: [
       {
-        file: packageJson.main,
+        file: './dist/index.js',
         format: 'cjs',
         sourcemap: true,
       },
       {
-        file: packageJson.module,
+        file: './dist/index.esm.js',
         format: 'esm',
         sourcemap: true,
       },
