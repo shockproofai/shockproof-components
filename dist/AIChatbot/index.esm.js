@@ -1,3 +1,4 @@
+"use client";
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { useState, useRef, useEffect, useCallback, forwardRef, createElement, useLayoutEffect } from 'react';
@@ -36466,7 +36467,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     // Update cumulative token usage when we get a new response
     React__default.useEffect(() => {
         if (lastResponse?.tokenUsage) {
-            setCumulativeTokenUsage(prev => ({
+            setCumulativeTokenUsage((prev) => ({
                 totalInputTokens: prev.totalInputTokens + lastResponse.tokenUsage.inputTokens,
                 totalOutputTokens: prev.totalOutputTokens + lastResponse.tokenUsage.outputTokens,
                 totalTokens: prev.totalTokens + lastResponse.tokenUsage.totalTokens,

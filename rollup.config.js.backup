@@ -14,13 +14,11 @@ export default [
         file: './dist/index.js',
         format: 'cjs',
         sourcemap: true,
-        banner: '"use client";',
       },
       {
         file: './dist/index.esm.js',
         format: 'esm',
         sourcemap: true,
-        banner: '"use client";',
       },
     ],
     plugins: [
@@ -37,13 +35,6 @@ export default [
       }),
     ],
     external: ['react', 'react-dom', 'firebase'],
-    onwarn(warning, warn) {
-      // Suppress "use client" directive warnings
-      if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
-        return;
-      }
-      warn(warning);
-    },
   },
   
   // AIChatbot standalone build (optional)
@@ -54,13 +45,11 @@ export default [
         file: 'dist/AIChatbot/index.js',
         format: 'cjs',
         sourcemap: true,
-        banner: '"use client";',
       },
       {
         file: 'dist/AIChatbot/index.esm.js',
         format: 'esm',
         sourcemap: true,
-        banner: '"use client";',
       },
     ],
     plugins: [
@@ -73,13 +62,6 @@ export default [
       }),
     ],
     external: ['react', 'react-dom', 'firebase'],
-    onwarn(warning, warn) {
-      // Suppress "use client" directive warnings
-      if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
-        return;
-      }
-      warn(warning);
-    },
   },
   
   // Type definitions - temporarily disabled

@@ -31,6 +31,14 @@ export interface ApiResponse<T = any> {
   timestamp: Date;
 }
 
+// Cumulative token usage for entire chat session
+export interface CumulativeTokenUsage {
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalTokens: number;
+  responseCount: number; // Number of AI responses in this session
+}
+
 // Future component types will be added here
 // export interface DataTableConfig { ... }
 // export interface FormBuilderConfig { ... }

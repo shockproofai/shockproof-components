@@ -15,7 +15,6 @@
     "noEmit": false,
     "jsx": "react-jsx",
     "declaration": true,
-    "declarationDir": "./dist/esm/types",
     "outDir": "./dist/esm",
     "baseUrl": "./src",
     "paths": {

@@ -1,3 +1,4 @@
+"use client";
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
@@ -36486,7 +36487,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     // Update cumulative token usage when we get a new response
     React.useEffect(() => {
         if (lastResponse?.tokenUsage) {
-            setCumulativeTokenUsage(prev => ({
+            setCumulativeTokenUsage((prev) => ({
                 totalInputTokens: prev.totalInputTokens + lastResponse.tokenUsage.inputTokens,
                 totalOutputTokens: prev.totalOutputTokens + lastResponse.tokenUsage.outputTokens,
                 totalTokens: prev.totalTokens + lastResponse.tokenUsage.totalTokens,

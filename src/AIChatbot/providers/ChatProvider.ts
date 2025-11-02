@@ -154,7 +154,7 @@ export type ChatProviderFactory<T = unknown> = (config: T) => ChatProvider;
  * Provider registry for managing multiple providers
  */
 export class ChatProviderRegistry {
-  private providers: Map<string, ChatProviderFactory> = new Map();
+  private providers: Map<string, ChatProviderFactory<any>> = new Map();
   
   register<T>(name: string, factory: ChatProviderFactory<T>): void {
     this.providers.set(name, factory);

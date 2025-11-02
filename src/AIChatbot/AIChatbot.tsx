@@ -81,7 +81,7 @@ export function AIChatbot({
   // Update cumulative token usage when we get a new response
   React.useEffect(() => {
     if (lastResponse?.tokenUsage) {
-      setCumulativeTokenUsage(prev => ({
+      setCumulativeTokenUsage((prev: CumulativeTokenUsage) => ({
         totalInputTokens: prev.totalInputTokens + lastResponse.tokenUsage!.inputTokens,
         totalOutputTokens: prev.totalOutputTokens + lastResponse.tokenUsage!.outputTokens,
         totalTokens: prev.totalTokens + lastResponse.tokenUsage!.totalTokens,
