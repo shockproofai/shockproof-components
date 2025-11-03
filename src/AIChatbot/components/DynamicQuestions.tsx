@@ -181,7 +181,7 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
     ];
 
     const questionsToUse = questions.length > 0 ? questions : fallbackQuestions;
-    const sortedQuestions = questionsToUse.sort((a, b) => a.priority - b.priority);
+    const sortedQuestions = [...questionsToUse].sort((a, b) => a.priority - b.priority);
     
     setInitialQuestions(sortedQuestions.slice(0, maxInitialQuestions));
     setAdditionalQuestions(sortedQuestions.slice(maxInitialQuestions));
