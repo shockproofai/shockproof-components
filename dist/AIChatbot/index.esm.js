@@ -33882,6 +33882,24 @@ const TooltipTrigger = Trigger$1;
 const TooltipContent = React.forwardRef(({ className, sideOffset = 4, ...props }, ref) => (jsx(Content2$1, { ref: ref, sideOffset: sideOffset, className: cn("z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", className), ...props })));
 TooltipContent.displayName = Content2$1.displayName;
 
+// Fallback questions defined outside component to prevent recreation
+const FALLBACK_QUESTIONS = [
+    {
+        id: "1",
+        question: "What are the key factors in commercial lending?",
+        topicDescription: "Commercial lending",
+        contextHints: ["risk assessment", "credit analysis", "loan terms"],
+        priority: 1,
+    },
+    {
+        id: "2",
+        question: "How do you analyze a company's financial statements?",
+        topicDescription: "Financial analysis",
+        contextHints: ["balance sheet", "income statement", "cash flow"],
+        priority: 1,
+    },
+    // Additional questions truncated for brevity - keeping only first 2 for now
+];
 const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
  }) => {
     const [initialQuestions, setInitialQuestions] = useState([]);
@@ -33889,151 +33907,7 @@ const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxIniti
     const [showMore, setShowMore] = useState(false);
     const [questionsLoaded, setQuestionsLoaded] = useState(false);
     useEffect(() => {
-        // Default fallback questions with more variety to show the grid
-        const fallbackQuestions = [
-            {
-                id: "1",
-                question: "What are the key factors in commercial lending?",
-                topicDescription: "Commercial lending",
-                contextHints: ["risk assessment", "credit analysis", "loan terms"],
-                priority: 1,
-            },
-            {
-                id: "2",
-                question: "How do you analyze a company's financial statements?",
-                topicDescription: "Financial analysis",
-                contextHints: ["balance sheet", "income statement", "cash flow"],
-                priority: 1,
-            },
-            {
-                id: "3",
-                question: "What are the different types of business loans?",
-                topicDescription: "Loan types",
-                contextHints: ["term loans", "lines of credit", "equipment financing"],
-                priority: 1,
-            },
-            {
-                id: "4",
-                question: "How do you calculate debt service coverage ratio?",
-                topicDescription: "Financial ratios",
-                contextHints: ["DSCR", "cash flow", "debt payments"],
-                priority: 1,
-            },
-            {
-                id: "5",
-                question: "What collateral is typically required for commercial loans?",
-                topicDescription: "Collateral",
-                contextHints: ["real estate", "equipment", "accounts receivable"],
-                priority: 1,
-            },
-            {
-                id: "6",
-                question: "How do you assess industry risk in lending?",
-                topicDescription: "Risk assessment",
-                contextHints: ["market conditions", "industry trends", "competition"],
-                priority: 1,
-            },
-            {
-                id: "7",
-                question: "What are the requirements for SBA loans?",
-                topicDescription: "SBA lending",
-                contextHints: ["eligibility", "documentation", "guarantee"],
-                priority: 1,
-            },
-            {
-                id: "8",
-                question: "How do you structure loan covenants?",
-                topicDescription: "Loan structure",
-                contextHints: ["financial covenants", "operational covenants", "compliance"],
-                priority: 1,
-            },
-            // Additional questions for "show more"
-            {
-                id: "9",
-                question: "What is the loan-to-value ratio and how is it calculated?",
-                topicDescription: "LTV calculations",
-                contextHints: ["property value", "loan amount", "appraisal"],
-                priority: 2,
-            },
-            {
-                id: "10",
-                question: "How do you evaluate management quality in credit decisions?",
-                topicDescription: "Management assessment",
-                contextHints: ["experience", "track record", "governance"],
-                priority: 2,
-            },
-            {
-                id: "11",
-                question: "What are the typical interest rate structures for commercial loans?",
-                topicDescription: "Interest rates",
-                contextHints: ["fixed", "variable", "prime rate"],
-                priority: 2,
-            },
-            {
-                id: "12",
-                question: "How do you document loan files for compliance?",
-                topicDescription: "Documentation",
-                contextHints: ["regulatory requirements", "audit trail", "compliance"],
-                priority: 2,
-            },
-            {
-                id: "13",
-                question: "What are the key performance indicators for commercial lending?",
-                topicDescription: "KPIs",
-                contextHints: ["portfolio performance", "default rates", "profitability"],
-                priority: 2,
-            },
-            {
-                id: "14",
-                question: "How do you handle workout and restructuring situations?",
-                topicDescription: "Workouts",
-                contextHints: ["troubled debt", "restructuring", "recovery"],
-                priority: 2,
-            },
-            {
-                id: "15",
-                question: "What environmental risk factors should be considered?",
-                topicDescription: "Environmental risk",
-                contextHints: ["environmental assessment", "liability", "compliance"],
-                priority: 2,
-            },
-            {
-                id: "16",
-                question: "How do you price commercial loans competitively?",
-                topicDescription: "Loan pricing",
-                contextHints: ["market rates", "risk premium", "profitability"],
-                priority: 2,
-            },
-            {
-                id: "17",
-                question: "What are the regulatory requirements for commercial lending?",
-                topicDescription: "Regulations",
-                contextHints: ["banking regulations", "compliance", "reporting"],
-                priority: 2,
-            },
-            {
-                id: "18",
-                question: "How do you conduct effective loan committee presentations?",
-                topicDescription: "Loan committee",
-                contextHints: ["presentation skills", "risk analysis", "decision making"],
-                priority: 3,
-            },
-            {
-                id: "19",
-                question: "What are the best practices for loan portfolio management?",
-                topicDescription: "Portfolio management",
-                contextHints: ["diversification", "risk monitoring", "performance tracking"],
-                priority: 3,
-            },
-            {
-                id: "20",
-                question: "How do you handle cross-selling opportunities in commercial lending?",
-                topicDescription: "Cross-selling",
-                contextHints: ["relationship banking", "additional products", "revenue generation"],
-                priority: 3,
-            },
-        ];
-        const questionsToUse = questions.length > 0 ? questions : fallbackQuestions;
+        const questionsToUse = questions.length > 0 ? questions : FALLBACK_QUESTIONS;
         const sortedQuestions = [...questionsToUse].sort((a, b) => a.priority - b.priority);
         setInitialQuestions(sortedQuestions.slice(0, maxInitialQuestions));
         setAdditionalQuestions(sortedQuestions.slice(maxInitialQuestions));
