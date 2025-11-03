@@ -10,7 +10,8 @@ export {
   MessageBubble, 
   ChatInput, 
   TimingInfo, 
-  DynamicQuestions 
+  DynamicQuestions,
+  FALLBACK_QUESTIONS // Export default fallback questions for customization
 } from './components';
 
 // Types

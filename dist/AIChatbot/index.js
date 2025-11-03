@@ -33906,25 +33906,186 @@ TooltipContent.displayName = Content2$1.displayName;
 const FALLBACK_QUESTIONS = [
     {
         id: "1",
-        question: "What are the key factors in commercial lending?",
-        topicDescription: "Commercial lending",
-        contextHints: ["risk assessment", "credit analysis", "loan terms"],
+        question: "What is cash flow analysis?",
+        topicDescription: "Cash flow analysis fundamentals",
+        contextHints: ["operating cash flow", "free cash flow", "cash flow statement"],
         priority: 1,
     },
     {
         id: "2",
-        question: "How do you analyze a company's financial statements?",
-        topicDescription: "Financial analysis",
-        contextHints: ["balance sheet", "income statement", "cash flow"],
+        question: "How do I evaluate credit risk?",
+        topicDescription: "Credit risk assessment",
+        contextHints: ["credit analysis", "risk factors", "loan underwriting"],
         priority: 1,
     },
-    // Additional questions truncated for brevity - keeping only first 2 for now
+    {
+        id: "3",
+        question: "Explain debt capacity ratios",
+        topicDescription: "Financial ratio analysis",
+        contextHints: ["debt service coverage", "leverage ratios", "financial health"],
+        priority: 1,
+    },
+    {
+        id: "4",
+        question: "What are the five C's of credit?",
+        topicDescription: "Credit analysis framework",
+        contextHints: ["character", "capacity", "capital", "collateral", "conditions"],
+        priority: 1,
+    },
+    {
+        id: "5",
+        question: "How do I calculate debt service coverage ratio?",
+        topicDescription: "DSCR calculation",
+        contextHints: ["debt service", "cash flow", "EBITDA", "loan payments"],
+        priority: 1,
+    },
+    {
+        id: "6",
+        question: "What factors affect loan pricing?",
+        topicDescription: "Loan pricing components",
+        contextHints: ["interest rates", "risk premium", "market conditions"],
+        priority: 1,
+    },
+    {
+        id: "7",
+        question: "How to analyze working capital needs?",
+        topicDescription: "Working capital analysis",
+        contextHints: ["current assets", "current liabilities", "liquidity"],
+        priority: 1,
+    },
+    {
+        id: "8",
+        question: "What is collateral valuation?",
+        topicDescription: "Collateral assessment",
+        contextHints: ["asset valuation", "loan-to-value", "security interest"],
+        priority: 1,
+    },
+    {
+        id: "9",
+        question: "How to structure a commercial loan?",
+        topicDescription: "Loan structuring",
+        contextHints: ["loan terms", "repayment schedule", "covenants"],
+        priority: 2,
+    },
+    {
+        id: "10",
+        question: "What are bank regulatory requirements?",
+        topicDescription: "Banking regulations",
+        contextHints: ["compliance", "capital requirements", "regulatory oversight"],
+        priority: 2,
+    },
+    {
+        id: "11",
+        question: "How to assess industry risk?",
+        topicDescription: "Industry analysis",
+        contextHints: ["market trends", "competitive landscape", "sector risks"],
+        priority: 2,
+    },
+    {
+        id: "12",
+        question: "What is loan documentation process?",
+        topicDescription: "Loan documentation",
+        contextHints: ["legal documents", "loan agreements", "compliance"],
+        priority: 2,
+    },
+    {
+        id: "13",
+        question: "How to monitor loan performance?",
+        topicDescription: "Loan monitoring",
+        contextHints: ["performance metrics", "early warning signs", "portfolio management"],
+        priority: 2,
+    },
+    {
+        id: "14",
+        question: "What are environmental risk factors?",
+        topicDescription: "Environmental due diligence",
+        contextHints: ["environmental liability", "ESG factors", "regulatory compliance"],
+        priority: 3,
+    },
+    {
+        id: "15",
+        question: "How to handle loan workout situations?",
+        topicDescription: "Loan workouts",
+        contextHints: ["troubled debt", "restructuring", "loss mitigation"],
+        priority: 3,
+    },
+    {
+        id: "16",
+        question: "What are cross-default provisions?",
+        topicDescription: "Loan covenants",
+        contextHints: ["default triggers", "loan agreements", "risk management"],
+        priority: 3,
+    },
+    {
+        id: "17",
+        question: "How to assess management quality?",
+        topicDescription: "Management evaluation",
+        contextHints: ["leadership assessment", "track record", "business experience"],
+        priority: 3,
+    },
+    {
+        id: "18",
+        question: "What is stress testing in lending?",
+        topicDescription: "Stress testing",
+        contextHints: ["scenario analysis", "risk assessment", "capital adequacy"],
+        priority: 3,
+    },
+    {
+        id: "19",
+        question: "How to price construction loans?",
+        topicDescription: "Construction lending",
+        contextHints: ["project financing", "draw schedules", "completion risk"],
+        priority: 4,
+    },
+    {
+        id: "20",
+        question: "What are SBA loan requirements?",
+        topicDescription: "SBA lending",
+        contextHints: ["government programs", "guarantee structure", "eligibility"],
+        priority: 4,
+    },
+    {
+        id: "21",
+        question: "How to evaluate real estate investments?",
+        topicDescription: "Real estate lending",
+        contextHints: ["property valuation", "NOI analysis", "cap rates"],
+        priority: 4,
+    },
+    {
+        id: "22",
+        question: "What is asset-based lending?",
+        topicDescription: "Asset-based financing",
+        contextHints: ["inventory financing", "receivables", "asset coverage"],
+        priority: 4,
+    },
+    {
+        id: "23",
+        question: "How to assess borrower's cash management?",
+        topicDescription: "Cash management analysis",
+        contextHints: ["treasury operations", "cash conversion cycle", "liquidity planning"],
+        priority: 5,
+    },
+    {
+        id: "24",
+        question: "What are covenant compliance requirements?",
+        topicDescription: "Loan covenant monitoring",
+        contextHints: ["financial covenants", "reporting requirements", "compliance testing"],
+        priority: 5,
+    },
+    {
+        id: "25",
+        question: "How to handle international trade financing?",
+        topicDescription: "Trade finance",
+        contextHints: ["letters of credit", "export financing", "documentary collections"],
+        priority: 5,
+    },
 ];
 const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
+fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
  }) => {
     const [showMore, setShowMore] = React.useState(false);
     const { initialQuestions, additionalQuestions, questionsLoaded } = React.useMemo(() => {
-        const questionsToUse = questions.length > 0 ? questions : FALLBACK_QUESTIONS;
+        const questionsToUse = questions.length > 0 ? questions : fallbackQuestions;
         const sortedQuestions = [...questionsToUse].sort((a, b) => a.priority - b.priority);
         const initial = sortedQuestions.slice(0, maxInitialQuestions);
         const additional = sortedQuestions.slice(maxInitialQuestions);
@@ -33933,7 +34094,7 @@ const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxIniti
             additionalQuestions: additional,
             questionsLoaded: initial.length > 0,
         };
-    }, [questions, maxInitialQuestions]);
+    }, [questions, maxInitialQuestions, fallbackQuestions]);
     const handleToggleMore = React.useCallback(() => {
         setShowMore(prev => !prev);
     }, []);
@@ -36409,7 +36570,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         clearMessages();
         startNewSession();
     };
-    return (jsxRuntime.jsxs("div", { className: `flex flex-col h-full max-h-screen ${className}`, style: style, "data-theme": config.theme || 'auto', children: [jsxRuntime.jsx(CardHeader, { className: "border-b bg-gradient-to-r from-blue-50 to-purple-50", children: jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [jsxRuntime.jsxs("div", { className: "flex items-center gap-3", children: [jsxRuntime.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-5 h-5 text-white" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsxs(CardTitle, { className: "flex items-center gap-2", children: [config.title || "Ask Rex", jsxRuntime.jsxs(Badge, { variant: "secondary", className: "text-xs", children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 mr-1" }), "AI-Powered"] }), jsxRuntime.jsx(Badge, { variant: "default", className: "text-xs", children: selectedAgent === "askRex" ? (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Bot, { className: "w-3 h-3 mr-1" }), " Ask Rex"] })) : (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 mr-1" }), " Ask Rex Test"] })) })] }), config.subtitle && (jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: config.subtitle }))] })] }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [config.showAgentSwitcher && provider.getAvailableAgents && (jsxRuntime.jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents().map((agent) => (jsxRuntime.jsx(SelectItem, { value: agent, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsxRuntime.jsx(Bot, { className: "w-4 h-4" })) : (jsxRuntime.jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs(Tooltip, { children: [jsxRuntime.jsx(TooltipTrigger, { asChild: true, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-1", children: [jsxRuntime.jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsxs(SelectContent, { className: "z-50", children: [jsxRuntime.jsx(SelectItem, { value: "0", children: "Always Stream" }), jsxRuntime.jsx(SelectItem, { value: "300", children: "300 chars" }), jsxRuntime.jsx(SelectItem, { value: "500", children: "500 chars" }), jsxRuntime.jsx(SelectItem, { value: "1000", children: "1K chars" }), jsxRuntime.jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsxRuntime.jsx(SelectItem, { value: "2000", children: "2K chars" }), jsxRuntime.jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsxRuntime.jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsxRuntime.jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxRuntime.jsxs("div", { className: "space-y-2", children: [jsxRuntime.jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsxRuntime.jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsxRuntime.jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxRuntime.jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), jsxRuntime.jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsxRuntime.jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] })] })] }) }), jsxRuntime.jsxs(CardContent, { className: "flex-1 overflow-y-auto p-4 space-y-4", children: [messages.length === 0 ? (jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center flex-1 text-center space-y-4", children: [config.welcomeMessage && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-8 h-8 text-blue-500" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" }), jsxRuntime.jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage })] })] })), config.enableQuestions && (jsxRuntime.jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: config.questions, maxInitialQuestions: config.maxInitialQuestions }))] })) : (jsxRuntime.jsxs("div", { className: "space-y-4 break-words", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
+    return (jsxRuntime.jsxs("div", { className: `flex flex-col h-full max-h-screen ${className}`, style: style, "data-theme": config.theme || 'auto', children: [jsxRuntime.jsx(CardHeader, { className: "border-b bg-gradient-to-r from-blue-50 to-purple-50", children: jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [jsxRuntime.jsxs("div", { className: "flex items-center gap-3", children: [jsxRuntime.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-5 h-5 text-white" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsxs(CardTitle, { className: "flex items-center gap-2", children: [config.title || "Ask Rex", jsxRuntime.jsxs(Badge, { variant: "secondary", className: "text-xs", children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 mr-1" }), "AI-Powered"] }), jsxRuntime.jsx(Badge, { variant: "default", className: "text-xs", children: selectedAgent === "askRex" ? (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Bot, { className: "w-3 h-3 mr-1" }), " Ask Rex"] })) : (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 mr-1" }), " Ask Rex Test"] })) })] }), config.subtitle && (jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: config.subtitle }))] })] }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [config.showAgentSwitcher && provider.getAvailableAgents && (jsxRuntime.jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents().map((agent) => (jsxRuntime.jsx(SelectItem, { value: agent, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsxRuntime.jsx(Bot, { className: "w-4 h-4" })) : (jsxRuntime.jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs(Tooltip, { children: [jsxRuntime.jsx(TooltipTrigger, { asChild: true, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-1", children: [jsxRuntime.jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsxs(SelectContent, { className: "z-50", children: [jsxRuntime.jsx(SelectItem, { value: "0", children: "Always Stream" }), jsxRuntime.jsx(SelectItem, { value: "300", children: "300 chars" }), jsxRuntime.jsx(SelectItem, { value: "500", children: "500 chars" }), jsxRuntime.jsx(SelectItem, { value: "1000", children: "1K chars" }), jsxRuntime.jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsxRuntime.jsx(SelectItem, { value: "2000", children: "2K chars" }), jsxRuntime.jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsxRuntime.jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsxRuntime.jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxRuntime.jsxs("div", { className: "space-y-2", children: [jsxRuntime.jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsxRuntime.jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsxRuntime.jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxRuntime.jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), jsxRuntime.jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsxRuntime.jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] })] })] }) }), jsxRuntime.jsxs(CardContent, { className: "flex-1 overflow-y-auto p-4 space-y-4", children: [messages.length === 0 ? (jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center flex-1 text-center space-y-4", children: [config.welcomeMessage && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-8 h-8 text-blue-500" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" }), jsxRuntime.jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage })] })] })), config.enableQuestions && (jsxRuntime.jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: config.questions, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions }))] })) : (jsxRuntime.jsxs("div", { className: "space-y-4 break-words", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
                                 const isLastMessage = index === messages.length - 1;
                                 const shouldShowStreaming = isStreaming && isLastMessage && streamingMessage;
                                 return (jsxRuntime.jsx(MessageBubble, { message: message, streamingContent: shouldShowStreaming ? streamingMessage : undefined, debugStreaming: config.debugStreaming }, message.id));
@@ -36638,6 +36799,7 @@ exports.AIChatbot = AIChatbot;
 exports.BaseChatProvider = BaseChatProvider;
 exports.ChatInput = ChatInput;
 exports.DynamicQuestions = DynamicQuestions;
+exports.FALLBACK_QUESTIONS = FALLBACK_QUESTIONS;
 exports.MessageBubble = MessageBubble;
 exports.TimingInfo = TimingInfo;
 exports.createFirebaseProvider = createFirebaseProvider;

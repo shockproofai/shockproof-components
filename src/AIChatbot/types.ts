@@ -91,6 +91,7 @@ export interface ChatbotConfig {
   // Questions configuration
   questions?: ChatQuestion[];
   maxInitialQuestions?: number;
+  fallbackQuestions?: ChatQuestion[]; // Configurable fallback questions
   
   // Behavior
   maxHistoryLength?: number;

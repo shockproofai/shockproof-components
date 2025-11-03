@@ -284,6 +284,7 @@ export function AIChatbot({
                   isLoading={isLoading}
                   questions={config.questions}
                   maxInitialQuestions={config.maxInitialQuestions}
+                  fallbackQuestions={config.fallbackQuestions}
                 />
               )}
             </div>
