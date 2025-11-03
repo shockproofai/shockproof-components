@@ -51,6 +51,16 @@ export interface ChatbotConfig {
   showTimingInfo?: boolean;
 
   /**
+   * Title for the chatbot header (optional)
+   */
+  title?: string;
+
+  /**
+   * Subtitle for the chatbot header (optional)
+   */
+  subtitle?: string;
+
+  /**
    * Custom placeholder text for input (optional)
    */
   placeholder?: string;

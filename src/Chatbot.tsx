@@ -180,6 +180,8 @@ export function Chatbot(props: ChatbotConfig) {
     showTimingInfo: config.showTimingInfo,
     defaultAgent: config.agentName,
     maxInitialQuestions: config.maxDynamicQuestions,
+    title: config.title,
+    subtitle: config.subtitle,
   }), [
     config.streamingThreshold,
     config.enableDynamicQuestions,
@@ -187,6 +189,8 @@ export function Chatbot(props: ChatbotConfig) {
     config.placeholder,
     config.agentName,
     config.maxDynamicQuestions,
+    config.title,
+    config.subtitle,
   ]);
 
   // Create callbacks

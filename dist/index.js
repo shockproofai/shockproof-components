@@ -37051,6 +37051,8 @@ function Chatbot(props) {
         showTimingInfo: config.showTimingInfo,
         defaultAgent: config.agentName,
         maxInitialQuestions: config.maxDynamicQuestions,
+        title: config.title,
+        subtitle: config.subtitle,
     }), [
         config.streamingThreshold,
         config.enableDynamicQuestions,
@@ -37058,6 +37060,8 @@ function Chatbot(props) {
         config.placeholder,
         config.agentName,
         config.maxDynamicQuestions,
+        config.title,
+        config.subtitle,
     ]);
     // Create callbacks
     const handleMessageSent = React.useMemo(() => {
