@@ -58,10 +58,41 @@ export interface RAGQuery {
  * Context source from RAG retrieval
  */
 export interface ContextSource {
-  title: string;
-  content: string;
-  similarity?: number;
-  metadata?: Record<string, any>;
+  id: string;
+  filename: string;
+  path: string;
+  contentType: string;
+  similarity: number;
+  contributionPercentage?: number;
+  rank?: 'primary' | 'supporting' | 'additional';
+  preview: string;
+  isChunk?: boolean;
+  chunkIndex?: number;
+  totalChunks?: number;
+  parentDocumentId?: string;
+}
+
+/**
+ * Token usage information
+ */
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+/**
+ * Streaming performance metrics
+ */
+export interface StreamingMetrics {
+  wasStreamed: boolean;
+  chunkCount: number;
+  totalContentLength: number;
+  streamingThreshold: number;
+  timeToFirstChunkMs?: number;
+  streamingDurationMs?: number;
+  bufferingReason?: 'threshold' | 'delay' | 'immediate' | 'error';
+  averageChunkSize?: number;
 }
 
 /**
@@ -70,9 +101,14 @@ export interface ContextSource {
 export interface RAGResponse {
   answer: string;
   sources?: ContextSource[];
+  searchTime?: number;
+  totalDocuments?: number;
+  confidence?: number;
   conversationContext?: string;
   model?: string;
-  timingMs?: number;
+  timings?: Record<string, number>;
+  tokenUsage?: TokenUsage;
+  streamingMetrics?: StreamingMetrics;
 }
 
 /**

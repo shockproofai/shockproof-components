@@ -36945,18 +36945,26 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
     convertRAGResponseToChatResponse(ragResponse) {
         return {
             answer: ragResponse.answer,
-            sources: ragResponse.sources?.map((source, index) => ({
-                id: `source-${index}`,
-                filename: source.title || 'Unknown',
-                path: source.title || '',
-                contentType: 'text',
-                similarity: source.similarity || 0,
-                preview: source.content?.substring(0, 200) || '',
+            sources: ragResponse.sources?.map((source) => ({
+                id: source.id,
+                filename: source.filename,
+                path: source.path,
+                contentType: source.contentType,
+                similarity: source.similarity,
+                contributionPercentage: source.contributionPercentage,
+                rank: source.rank,
+                preview: source.preview,
+                isChunk: source.isChunk,
+                chunkIndex: source.chunkIndex,
+                totalChunks: source.totalChunks,
+                parentDocumentId: source.parentDocumentId,
             })) || [],
-            searchTime: ragResponse.timingMs || 0,
-            totalDocuments: ragResponse.sources?.length || 0,
-            confidence: 0.8, // Default confidence
-            timings: ragResponse.timingMs ? { total: ragResponse.timingMs } : undefined,
+            searchTime: ragResponse.searchTime || 0,
+            totalDocuments: ragResponse.totalDocuments || ragResponse.sources?.length || 0,
+            confidence: ragResponse.confidence || 0.8,
+            timings: ragResponse.timings,
+            tokenUsage: ragResponse.tokenUsage,
+            streamingMetrics: ragResponse.streamingMetrics,
         };
     }
     async sendMessage(message, context, config) {
