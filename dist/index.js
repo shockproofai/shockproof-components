@@ -36974,6 +36974,10 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
     switchAgent(agentName) {
         if (agentName === 'askRex' || agentName === 'askRexTest') {
             this.selectedAgent = agentName;
+            // Save to Firestore
+            this.chatService.saveChatbotPreferences({ selectedAgent: agentName }).catch(err => {
+                console.error('Failed to save agent preference:', err);
+            });
         }
     }
     getAvailableAgents() {
@@ -37032,6 +37036,13 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
         const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
         // Use streaming threshold from config if provided, otherwise use default
         const streamingThreshold = config?.streamingThreshold ?? this.streamingThreshold;
+        // Save streaming threshold if it changed
+        if (config?.streamingThreshold !== undefined && config.streamingThreshold !== this.streamingThreshold) {
+            this.streamingThreshold = config.streamingThreshold;
+            this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold }).catch(err => {
+                console.error('Failed to save streaming threshold preference:', err);
+            });
+        }
         await this.chatService.streamMessage(message, this.maxResults, conversationHistory, this.selectedAgent, onChunk, (ragResponse) => {
             if (onComplete) {
                 const chatResponse = this.convertRAGResponseToChatResponse(ragResponse);

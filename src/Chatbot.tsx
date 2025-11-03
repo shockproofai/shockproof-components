@@ -29,6 +29,10 @@ class FirebaseChatProvider implements ChatProvider {
   switchAgent(agentName: string): void {
     if (agentName === 'askRex' || agentName === 'askRexTest') {
       this.selectedAgent = agentName;
+      // Save to Firestore
+      this.chatService.saveChatbotPreferences({ selectedAgent: agentName }).catch(err => {
+        console.error('Failed to save agent preference:', err);
+      });
     }
   }
 
@@ -111,6 +115,14 @@ class FirebaseChatProvider implements ChatProvider {
     
     // Use streaming threshold from config if provided, otherwise use default
     const streamingThreshold = config?.streamingThreshold ?? this.streamingThreshold;
+    
+    // Save streaming threshold if it changed
+    if (config?.streamingThreshold !== undefined && config.streamingThreshold !== this.streamingThreshold) {
+      this.streamingThreshold = config.streamingThreshold;
+      this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold }).catch(err => {
+        console.error('Failed to save streaming threshold preference:', err);
+      });
+    }
 
     await this.chatService.streamMessage(
       message,
