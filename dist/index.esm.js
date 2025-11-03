@@ -1,7 +1,7 @@
 "use client";
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
-import React__default, { useState, useRef, useEffect, useCallback, forwardRef, createElement, useLayoutEffect } from 'react';
+import React__default, { useState, useRef, useEffect, useCallback, forwardRef, createElement, useLayoutEffect, useMemo } from 'react';
 import * as ReactDOM from 'react-dom';
 import ReactDOM__default from 'react-dom';
 
@@ -33902,25 +33902,26 @@ const FALLBACK_QUESTIONS = [
 ];
 const DynamicQuestions = ({ onQuestionClick, isLoading, questions = [], maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
  }) => {
-    const [initialQuestions, setInitialQuestions] = useState([]);
-    const [additionalQuestions, setAdditionalQuestions] = useState([]);
     const [showMore, setShowMore] = useState(false);
-    const [questionsLoaded, setQuestionsLoaded] = useState(false);
-    useEffect(() => {
+    const { initialQuestions, additionalQuestions, questionsLoaded } = useMemo(() => {
         const questionsToUse = questions.length > 0 ? questions : FALLBACK_QUESTIONS;
         const sortedQuestions = [...questionsToUse].sort((a, b) => a.priority - b.priority);
-        setInitialQuestions(sortedQuestions.slice(0, maxInitialQuestions));
-        setAdditionalQuestions(sortedQuestions.slice(maxInitialQuestions));
-        setQuestionsLoaded(true);
+        const initial = sortedQuestions.slice(0, maxInitialQuestions);
+        const additional = sortedQuestions.slice(maxInitialQuestions);
+        return {
+            initialQuestions: initial,
+            additionalQuestions: additional,
+            questionsLoaded: initial.length > 0,
+        };
     }, [questions, maxInitialQuestions]);
-    const handleToggleMore = () => {
-        setShowMore(!showMore);
-    };
-    const truncateText = (text, maxLength = 120) => {
+    const handleToggleMore = useCallback(() => {
+        setShowMore(prev => !prev);
+    }, []);
+    const truncateText = useCallback((text, maxLength = 120) => {
         if (text.length <= maxLength)
             return text;
         return text.substring(0, maxLength).trim() + "...";
-    };
+    }, []);
     const renderQuestion = (question, index) => {
         const truncatedQuestion = truncateText(question.question);
         const isLongQuestion = question.question.length > 120;

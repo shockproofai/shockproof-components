@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Button } from "../../shared/components/ui/button";
 import { Badge } from "../../shared/components/ui/badge";
 import {
@@ -48,28 +48,29 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
   questions = [],
   maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
 }) => {
-  const [initialQuestions, setInitialQuestions] = useState<ChatQuestion[]>([]);
-  const [additionalQuestions, setAdditionalQuestions] = useState<ChatQuestion[]>([]);
   const [showMore, setShowMore] = useState(false);
-  const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
-  useEffect(() => {
+  const { initialQuestions, additionalQuestions, questionsLoaded } = useMemo(() => {
     const questionsToUse = questions.length > 0 ? questions : FALLBACK_QUESTIONS;
     const sortedQuestions = [...questionsToUse].sort((a, b) => a.priority - b.priority);
+    const initial = sortedQuestions.slice(0, maxInitialQuestions);
+    const additional = sortedQuestions.slice(maxInitialQuestions);
     
-    setInitialQuestions(sortedQuestions.slice(0, maxInitialQuestions));
-    setAdditionalQuestions(sortedQuestions.slice(maxInitialQuestions));
-    setQuestionsLoaded(true);
+    return {
+      initialQuestions: initial,
+      additionalQuestions: additional,
+      questionsLoaded: initial.length > 0,
+    };
   }, [questions, maxInitialQuestions]);
 
-  const handleToggleMore = () => {
-    setShowMore(!showMore);
-  };
+  const handleToggleMore = useCallback(() => {
+    setShowMore(prev => !prev);
+  }, []);
 
-  const truncateText = (text: string, maxLength: number = 120) => {
+  const truncateText = useCallback((text: string, maxLength: number = 120) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength).trim() + "...";
-  };
+  }, []);
 
   const renderQuestion = (question: ChatQuestion, index: number) => {
     const truncatedQuestion = truncateText(question.question);
