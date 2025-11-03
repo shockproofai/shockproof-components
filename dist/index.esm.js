@@ -36866,6 +36866,40 @@ class ChatService {
         const title = words.join(' ');
         return title.length > 30 ? title.substring(0, 30) + '...' : title;
     }
+    /**
+     * Get chatbot preferences from Firestore config/app
+     */
+    async getChatbotPreferences() {
+        try {
+            const appConfigRef = doc(this.db, 'config/app');
+            const appConfigSnap = await getDoc(appConfigRef);
+            if (appConfigSnap.exists()) {
+                const data = appConfigSnap.data();
+                return {
+                    selectedAgent: data.selectedAgent,
+                    streamingThreshold: typeof data.streamingThreshold === 'number' ? data.streamingThreshold : undefined,
+                };
+            }
+            return {};
+        }
+        catch (error) {
+            console.warn('Failed to read chatbot preferences:', error);
+            return {};
+        }
+    }
+    /**
+     * Save chatbot preferences to Firestore config/app
+     */
+    async saveChatbotPreferences(preferences) {
+        try {
+            const appConfigRef = doc(this.db, 'config/app');
+            await updateDoc(appConfigRef, preferences);
+        }
+        catch (error) {
+            console.error('Failed to save chatbot preferences:', error);
+            throw new Error('Failed to save preferences');
+        }
+    }
 }
 
 /**
