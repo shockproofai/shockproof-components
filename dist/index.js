@@ -36996,12 +36996,14 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
     async streamMessage(message, context, onChunk, onComplete, config) {
         const topicContext = this.convertTopicContext(context);
         const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
+        // Use streaming threshold from config if provided, otherwise use default
+        const streamingThreshold = config?.streamingThreshold ?? this.streamingThreshold;
         await this.chatService.streamMessage(message, this.maxResults, conversationHistory, this.selectedAgent, onChunk, (ragResponse) => {
             if (onComplete) {
                 const chatResponse = this.convertRAGResponseToChatResponse(ragResponse);
                 onComplete(chatResponse);
             }
-        }, topicContext, this.streamingThreshold);
+        }, topicContext, streamingThreshold);
     }
 };
 /**

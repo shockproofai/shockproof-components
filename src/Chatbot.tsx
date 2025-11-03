@@ -108,6 +108,9 @@ class FirebaseChatProvider implements ChatProvider {
   ): Promise<void> {
     const topicContext = this.convertTopicContext(context);
     const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
+    
+    // Use streaming threshold from config if provided, otherwise use default
+    const streamingThreshold = config?.streamingThreshold ?? this.streamingThreshold;
 
     await this.chatService.streamMessage(
       message,
@@ -122,7 +125,7 @@ class FirebaseChatProvider implements ChatProvider {
         }
       },
       topicContext,
-      this.streamingThreshold
+      streamingThreshold
     );
   }
 }
