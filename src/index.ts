@@ -1,7 +1,13 @@
 // ShockProof Components Library
 // Main exports for all reusable components
 
-// === AI Chatbot Component ===
+// === Black Box Chatbot Component (v2.0) ===
+export { Chatbot } from './Chatbot';
+export type { ChatbotConfig } from './Chatbot';
+export { ChatService } from './services';
+export type { ChatServiceInterface } from './services';
+
+// === AI Chatbot Component (Legacy/Advanced) ===
 export {
   AIChatbot,
   createFirebaseProvider,
@@ -14,7 +20,7 @@ export {
 } from './AIChatbot';
 
 export type {
-  ChatbotConfig,
+  ChatbotConfig as AIChatbotConfig,
   ChatMessage,
   ChatResponse,
   ChatQuestion,

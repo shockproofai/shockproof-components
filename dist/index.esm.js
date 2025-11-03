@@ -4,6 +4,8 @@ import * as React from 'react';
 import React__default, { useState, useRef, useEffect, useCallback, forwardRef, createElement, useLayoutEffect, useMemo } from 'react';
 import * as ReactDOM from 'react-dom';
 import ReactDOM__default from 'react-dom';
+import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // Unique ID creation requires a high quality random # generator. In the browser we therefore
 // require the crypto API and do not support built-in fallback to lower quality random number
@@ -36567,6 +36569,494 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
 // Display name for debugging
 AIChatbot.displayName = 'AIChatbot';
 
+/**
+ * Firebase-based implementation of ChatService
+ * Provides RAG chatbot functionality with streaming support and conversation management
+ */
+class ChatService {
+    constructor(firebaseApp, options) {
+        this.db = getFirestore(firebaseApp);
+        this.functions = getFunctions(firebaseApp);
+        this.projectId = options?.projectId || firebaseApp.options.projectId || 'shockproof-dev';
+        this.useEmulators = options?.useEmulators || false;
+    }
+    /**
+     * Read debug streaming flag from Firestore config/app document
+     */
+    async getDebugStreamingFlag() {
+        try {
+            const appConfigRef = doc(this.db, 'config/app');
+            const appConfigSnap = await getDoc(appConfigRef);
+            if (appConfigSnap.exists()) {
+                const data = appConfigSnap.data();
+                return typeof data.debugStreaming === 'boolean' ? data.debugStreaming : false;
+            }
+            return false;
+        }
+        catch (error) {
+            console.warn('Failed to read debug streaming config, defaulting to false:', error);
+            return false;
+        }
+    }
+    /**
+     * Stream Firestore RAG chatbot response with conditional streaming
+     * @param streamingThreshold - Minimum characters before streaming begins (default: 300)
+     *                            Set to 0 to always stream, set high (e.g., 10000) to effectively disable
+     */
+    async streamMessage(query, maxResults, conversationHistory, selectedAgent, onChunk, onDone, topicContext, streamingThreshold = 300) {
+        // Read debug flag early
+        const DEBUG = await this.getDebugStreamingFlag();
+        // Use HTTP endpoint for true streaming support
+        const functionUrl = this.useEmulators
+            ? 'http://localhost:9200/firestoreRagChatQueryStream'
+            : `https://us-central1-${this.projectId}.cloudfunctions.net/firestoreRagChatQueryStream`;
+        if (DEBUG) {
+            console.log('🌐 Using function URL:', functionUrl, '(emulators:', this.useEmulators, ', projectId:', this.projectId, ')');
+        }
+        const ragQuery = {
+            query,
+            maxResults,
+            includeContext: true,
+            conversationHistory: conversationHistory.slice(-10).map(msg => ({
+                id: msg.id,
+                content: msg.content,
+                role: msg.role,
+                timestamp: msg.timestamp instanceof Date ? msg.timestamp : undefined,
+            })),
+            topicContext,
+            agentName: selectedAgent,
+            streamingThreshold,
+        };
+        if (DEBUG) {
+            console.log('🚀 Sending streaming Firestore RAG query:', {
+                query: query.substring(0, 50) + '...',
+                historyLength: ragQuery.conversationHistory?.length || 0,
+                topicContext: ragQuery.topicContext,
+                agentName: selectedAgent,
+            });
+        }
+        try {
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(ragQuery),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            if (!reader) {
+                throw new Error('Response body is not readable');
+            }
+            let buffer = '';
+            let streamingComplete = false;
+            let lastChunkTime = Date.now();
+            if (DEBUG) {
+                console.log(`[${new Date().toISOString()}] 🐛 Client-side debug streaming enabled from Firestore config`);
+                console.log(`[${new Date().toISOString()}] 📖 Starting to read stream...`);
+            }
+            while (true) {
+                const { done, value } = await reader.read();
+                const currentTime = Date.now();
+                if (DEBUG && value) {
+                    console.log(`[${new Date().toISOString()}] 📦 Received bytes:`, value.length);
+                }
+                if (done || streamingComplete) {
+                    if (DEBUG) {
+                        console.log(`[${new Date().toISOString()}] 🛑 Stream complete (done: ${done}, streamingComplete: ${streamingComplete})`);
+                    }
+                    break;
+                }
+                // Safety timeout: if we haven't received any data for 30 seconds, break
+                if (currentTime - lastChunkTime > 30000) {
+                    console.warn(`[${new Date().toISOString()}] ⏰ Stream timeout: no data for 30s`);
+                    break;
+                }
+                if (value) {
+                    lastChunkTime = currentTime;
+                }
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                if (DEBUG) {
+                    console.log(`[${new Date().toISOString()}] 📝 Buffer content (${buffer.length} chars):`, buffer.substring(0, 200));
+                    console.log(`[${new Date().toISOString()}] 📋 Split into ${lines.length} lines`);
+                }
+                // Keep the last potentially incomplete line in buffer
+                buffer = lines.pop() || '';
+                for (const line of lines) {
+                    if (DEBUG) {
+                        console.log(`[${new Date().toISOString()}] 🔍 Processing line:`, line.substring(0, 100));
+                    }
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6)); // Remove 'data: ' prefix
+                            if (DEBUG) {
+                                console.log(`[${new Date().toISOString()}] 📨 Parsed SSE data:`, { type: data.type, contentLength: data.content?.length || 0 });
+                            }
+                            if (data.type === 'chunk') {
+                                if (typeof data.content === 'string' && data.content.length > 0) {
+                                    if (DEBUG) {
+                                        console.log(`[${new Date().toISOString()}] 🎯 Calling onChunk with:`, data.content.substring(0, 50));
+                                    }
+                                    onChunk(data.content);
+                                }
+                                else if (DEBUG) {
+                                    console.warn(`⚠️ Invalid chunk:`, typeof data.content);
+                                }
+                            }
+                            else if (data.type === 'done') {
+                                if (DEBUG) {
+                                    console.log(`[${new Date().toISOString()}] ✅ Received 'done' message`);
+                                }
+                                if (onDone && data.response) {
+                                    onDone(data.response);
+                                }
+                                streamingComplete = true;
+                                break;
+                            }
+                            else if (data.type === 'error') {
+                                console.error(`❌ Streaming error:`, data.message);
+                                throw new Error(data.message);
+                            }
+                        }
+                        catch (e) {
+                            console.warn('⚠️ Failed to parse SSE:', line, e);
+                        }
+                    }
+                }
+                // If streaming is complete, break out of the while loop immediately
+                if (streamingComplete) {
+                    break;
+                }
+            }
+        }
+        catch (error) {
+            console.error('Streaming error:', error);
+            throw error;
+        }
+    }
+    /**
+     * Send a query to the RAG chatbot with full conversation context
+     */
+    async sendMessage(query, maxResults = 5, conversationHistory = [], topicContext, selectedAgent = 'askRex') {
+        try {
+            console.log('🚀 Sending RAG query with agent:', selectedAgent);
+            // Always use Firestore RAG implementation with selected agent
+            return await this.sendFirestoreMessage(query, maxResults, conversationHistory, topicContext, selectedAgent);
+        }
+        catch (error) {
+            console.error('Error sending RAG query:', error);
+            throw new Error('Failed to send message. Please try again.');
+        }
+    }
+    /**
+     * Send message using Firestore RAG implementation
+     */
+    async sendFirestoreMessage(query, maxResults, conversationHistory, topicContext, selectedAgent = 'askRex') {
+        // Call the Firestore RAG function
+        const firestoreRagQuery = httpsCallable(this.functions, 'firestoreRagChatQuery');
+        const ragQuery = {
+            query,
+            maxResults,
+            includeContext: true,
+            conversationHistory: conversationHistory.slice(-10).map(msg => ({
+                id: msg.id,
+                content: msg.content,
+                role: msg.role,
+                timestamp: msg.timestamp instanceof Date ? msg.timestamp : undefined,
+            })),
+            topicContext,
+            agentName: selectedAgent,
+        };
+        console.log('🚀 Sending Firestore RAG query:', {
+            query: query.substring(0, 50) + '...',
+            historyLength: ragQuery.conversationHistory?.length || 0,
+            topicContext: ragQuery.topicContext,
+        });
+        const result = await firestoreRagQuery(ragQuery);
+        return result.data;
+    }
+    /**
+     * Create a new chat session
+     */
+    async createChatSession(userId, title = 'New Chat') {
+        try {
+            const chatSession = {
+                title,
+                messages: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                userId,
+            };
+            const docRef = await addDoc(collection(this.db, 'chatSessions'), chatSession);
+            return docRef.id;
+        }
+        catch (error) {
+            console.error('Error creating chat session:', error);
+            throw new Error('Failed to create chat session');
+        }
+    }
+    /**
+     * Subscribe to chat session updates
+     */
+    subscribeToChatSession(sessionId, callback) {
+        const sessionRef = doc(this.db, 'chatSessions', sessionId);
+        return onSnapshot(sessionRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                const session = {
+                    docId: doc.id,
+                    title: data.title,
+                    messages: data.messages || [],
+                    createdAt: data.createdAt?.toDate() || new Date(),
+                    updatedAt: data.updatedAt?.toDate() || new Date(),
+                    userId: data.userId,
+                };
+                callback(session);
+            }
+        });
+    }
+    /**
+     * Get user's chat sessions
+     */
+    subscribeToUserChatSessions(userId, callback) {
+        const sessionsRef = collection(this.db, 'chatSessions');
+        const q = query(sessionsRef, orderBy('updatedAt', 'desc'));
+        return onSnapshot(q, (snapshot) => {
+            const sessions = snapshot.docs
+                .map(doc => {
+                const data = doc.data();
+                return {
+                    docId: doc.id,
+                    title: data.title,
+                    messages: data.messages || [],
+                    createdAt: data.createdAt?.toDate() || new Date(),
+                    updatedAt: data.updatedAt?.toDate() || new Date(),
+                    userId: data.userId,
+                };
+            })
+                .filter(session => session.userId === userId);
+            callback(sessions);
+        });
+    }
+    /**
+     * Update chat session title
+     */
+    async updateSessionTitle(sessionId, title) {
+        try {
+            const sessionRef = doc(this.db, 'chatSessions', sessionId);
+            await updateDoc(sessionRef, {
+                title,
+                updatedAt: new Date(),
+            });
+        }
+        catch (error) {
+            console.error('Error updating session title:', error);
+            throw new Error('Failed to update session title');
+        }
+    }
+    /**
+     * Generate a smart title for a chat session based on the first message
+     */
+    generateSessionTitle(firstMessage) {
+        const words = firstMessage.split(' ').slice(0, 6);
+        const title = words.join(' ');
+        return title.length > 30 ? title.substring(0, 30) + '...' : title;
+    }
+}
+
+/**
+ * Default configuration values for the Chatbot component
+ */
+const defaultChatbotConfig = {
+    useEmulators: false,
+    agentName: 'askRex',
+    maxResults: 5,
+    streamingThreshold: 300,
+    enableDynamicQuestions: true,
+    maxDynamicQuestions: 3,
+    showTimingInfo: false,
+    placeholder: 'Ask me anything about the course...',
+};
+/**
+ * Merge user config with defaults
+ */
+function mergeWithDefaults(userConfig) {
+    return {
+        ...defaultChatbotConfig,
+        ...userConfig,
+        // Ensure firebaseApp is always from user config (required)
+        firebaseApp: userConfig.firebaseApp,
+        // Provide defaults for optional fields
+        useEmulators: userConfig.useEmulators ?? defaultChatbotConfig.useEmulators,
+        projectId: userConfig.projectId ?? userConfig.firebaseApp.options.projectId ?? 'shockproof-dev',
+        agentName: userConfig.agentName ?? defaultChatbotConfig.agentName,
+        maxResults: userConfig.maxResults ?? defaultChatbotConfig.maxResults,
+        streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold,
+        enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions,
+        maxDynamicQuestions: userConfig.maxDynamicQuestions ?? defaultChatbotConfig.maxDynamicQuestions,
+        showTimingInfo: userConfig.showTimingInfo ?? defaultChatbotConfig.showTimingInfo,
+        placeholder: userConfig.placeholder ?? defaultChatbotConfig.placeholder,
+    };
+}
+
+/**
+ * Firebase-based chat provider that uses the ChatService
+ */
+let FirebaseChatProvider$1 = class FirebaseChatProvider {
+    constructor(chatService, config) {
+        this.name = 'firebase';
+        this.selectedAgent = 'askRex';
+        this.maxResults = 5;
+        this.streamingThreshold = 300;
+        this.chatService = chatService;
+        this.selectedAgent = config.agentName || 'askRex';
+        this.maxResults = config.maxResults || 5;
+        this.streamingThreshold = config.streamingThreshold || 300;
+    }
+    switchAgent(agentName) {
+        if (agentName === 'askRex' || agentName === 'askRexTest') {
+            this.selectedAgent = agentName;
+        }
+    }
+    getAvailableAgents() {
+        return ['askRex', 'askRexTest'];
+    }
+    convertTopicContext(context) {
+        if (!context?.topicContext)
+            return undefined;
+        return {
+            originalTopic: context.topicContext.originalTopic,
+            topicDescription: context.topicContext.topicDescription,
+            contextHints: context.topicContext.contextHints,
+        };
+    }
+    convertMessagesToSDK(messages) {
+        return messages.map(msg => ({
+            id: msg.id,
+            content: msg.content,
+            role: msg.role,
+            timestamp: msg.timestamp,
+        }));
+    }
+    convertRAGResponseToChatResponse(ragResponse) {
+        return {
+            answer: ragResponse.answer,
+            sources: ragResponse.sources?.map((source, index) => ({
+                id: `source-${index}`,
+                filename: source.title || 'Unknown',
+                path: source.title || '',
+                contentType: 'text',
+                similarity: source.similarity || 0,
+                preview: source.content?.substring(0, 200) || '',
+            })) || [],
+            searchTime: ragResponse.timingMs || 0,
+            totalDocuments: ragResponse.sources?.length || 0,
+            confidence: 0.8, // Default confidence
+            timings: ragResponse.timingMs ? { total: ragResponse.timingMs } : undefined,
+        };
+    }
+    async sendMessage(message, context, config) {
+        const topicContext = this.convertTopicContext(context);
+        const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
+        const ragResponse = await this.chatService.sendMessage(message, this.maxResults, conversationHistory, topicContext, this.selectedAgent);
+        return this.convertRAGResponseToChatResponse(ragResponse);
+    }
+    async streamMessage(message, context, onChunk, onComplete, config) {
+        const topicContext = this.convertTopicContext(context);
+        const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
+        await this.chatService.streamMessage(message, this.maxResults, conversationHistory, this.selectedAgent, onChunk, (ragResponse) => {
+            if (onComplete) {
+                const chatResponse = this.convertRAGResponseToChatResponse(ragResponse);
+                onComplete(chatResponse);
+            }
+        }, topicContext, this.streamingThreshold);
+    }
+};
+/**
+ * Chatbot - Black box chatbot component with Firebase backend
+ *
+ * This is a complete, batteries-included chatbot component that requires
+ * only a Firebase app instance to work. It wraps the AIChatbot UI component
+ * with a Firebase-based provider and service layer.
+ *
+ * @example
+ * ```tsx
+ * import { initializeApp } from 'firebase/app';
+ * import { Chatbot } from 'shockproof-components';
+ *
+ * const firebaseApp = initializeApp({ ... });
+ *
+ * function MyApp() {
+ *   return (
+ *     <Chatbot
+ *       firebaseApp={firebaseApp}
+ *       agentName="askRex"
+ *       enableDynamicQuestions={true}
+ *     />
+ *   );
+ * }
+ * ```
+ */
+function Chatbot(props) {
+    // Merge user config with defaults
+    const config = useMemo(() => mergeWithDefaults(props), [props]);
+    // Create ChatService instance
+    const chatService = useMemo(() => {
+        return new ChatService(config.firebaseApp, {
+            useEmulators: config.useEmulators,
+            projectId: config.projectId,
+        });
+    }, [config.firebaseApp, config.useEmulators, config.projectId]);
+    // Create Firebase provider
+    const provider = useMemo(() => {
+        return new FirebaseChatProvider$1(chatService, {
+            agentName: config.agentName,
+            maxResults: config.maxResults,
+            streamingThreshold: config.streamingThreshold,
+        });
+    }, [chatService, config.agentName, config.maxResults, config.streamingThreshold]);
+    // Map our config to AIChatbot config
+    const chatbotConfig = useMemo(() => ({
+        enableStreaming: true,
+        streamingThreshold: config.streamingThreshold,
+        enableSources: true,
+        enableQuestions: config.enableDynamicQuestions,
+        enableTimingInfo: config.showTimingInfo,
+        placeholder: config.placeholder,
+        showAgentSwitcher: true,
+        showTimingInfo: config.showTimingInfo,
+        defaultAgent: config.agentName,
+        maxInitialQuestions: config.maxDynamicQuestions,
+    }), [
+        config.streamingThreshold,
+        config.enableDynamicQuestions,
+        config.showTimingInfo,
+        config.placeholder,
+        config.agentName,
+        config.maxDynamicQuestions,
+    ]);
+    // Create callbacks
+    const handleMessageSent = useMemo(() => {
+        return (message) => {
+            if (config.onMessageSent) {
+                config.onMessageSent(message);
+            }
+        };
+    }, [config.onMessageSent]);
+    const handleMessageReceived = useMemo(() => {
+        return (response) => {
+            if (config.onResponseReceived) {
+                config.onResponseReceived(response.answer);
+            }
+        };
+    }, [config.onResponseReceived]);
+    return (jsx(AIChatbot, { provider: provider, config: chatbotConfig, onMessageSent: handleMessageSent, onMessageReceived: handleMessageReceived, className: config.className, style: config.style }));
+}
+
 // AIChatbot Component Types
 // This file contains all the TypeScript interfaces for the reusable chatbot component
 // Error types
@@ -36775,5 +37265,5 @@ function createFirebaseProvider(config) {
     return new FirebaseChatProvider(config);
 }
 
-export { AIChatbot, BaseChatProvider, ChatInput, DynamicQuestions, MessageBubble, TimingInfo, createFirebaseProvider, useChatState };
+export { AIChatbot, BaseChatProvider, ChatInput, ChatService, Chatbot, DynamicQuestions, MessageBubble, TimingInfo, createFirebaseProvider, useChatState };
 //# sourceMappingURL=index.esm.js.map

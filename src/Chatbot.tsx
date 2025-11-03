@@ -1,0 +1,224 @@
+import React, { useMemo } from 'react';
+import { AIChatbot } from './AIChatbot/AIChatbot';
+import { ChatProvider, ChatContext, ChatResponse, ChatbotConfig as AIChatbotConfig } from './AIChatbot/types';
+import { ChatService } from './services/ChatService';
+import { ChatbotConfig, mergeWithDefaults } from './config';
+import { ChatMessage as SDKChatMessage, RAGResponse, TopicContext } from './types';
+
+/**
+ * Firebase-based chat provider that uses the ChatService
+ */
+class FirebaseChatProvider implements ChatProvider {
+  name = 'firebase';
+  private chatService: ChatService;
+  private selectedAgent: 'askRex' | 'askRexTest' = 'askRex';
+  private maxResults: number = 5;
+  private streamingThreshold: number = 300;
+
+  constructor(chatService: ChatService, config: {
+    agentName?: 'askRex' | 'askRexTest';
+    maxResults?: number;
+    streamingThreshold?: number;
+  }) {
+    this.chatService = chatService;
+    this.selectedAgent = config.agentName || 'askRex';
+    this.maxResults = config.maxResults || 5;
+    this.streamingThreshold = config.streamingThreshold || 300;
+  }
+
+  switchAgent(agentName: string): void {
+    if (agentName === 'askRex' || agentName === 'askRexTest') {
+      this.selectedAgent = agentName;
+    }
+  }
+
+  getAvailableAgents(): string[] {
+    return ['askRex', 'askRexTest'];
+  }
+
+  private convertTopicContext(context?: ChatContext): TopicContext | undefined {
+    if (!context?.topicContext) return undefined;
+    return {
+      originalTopic: context.topicContext.originalTopic,
+      topicDescription: context.topicContext.topicDescription,
+      contextHints: context.topicContext.contextHints,
+    };
+  }
+
+  private convertMessagesToSDK(messages: ChatMessage[]): SDKChatMessage[] {
+    return messages.map(msg => ({
+      id: msg.id,
+      content: msg.content,
+      role: msg.role,
+      timestamp: msg.timestamp,
+    }));
+  }
+
+  private convertRAGResponseToChatResponse(ragResponse: RAGResponse): ChatResponse {
+    return {
+      answer: ragResponse.answer,
+      sources: ragResponse.sources?.map((source, index) => ({
+        id: `source-${index}`,
+        filename: source.title || 'Unknown',
+        path: source.title || '',
+        contentType: 'text',
+        similarity: source.similarity || 0,
+        preview: source.content?.substring(0, 200) || '',
+      })) || [],
+      searchTime: ragResponse.timingMs || 0,
+      totalDocuments: ragResponse.sources?.length || 0,
+      confidence: 0.8, // Default confidence
+      timings: ragResponse.timingMs ? { total: ragResponse.timingMs } : undefined,
+    };
+  }
+
+  async sendMessage(
+    message: string,
+    context: ChatContext,
+    config?: Partial<AIChatbotConfig>
+  ): Promise<ChatResponse> {
+    const topicContext = this.convertTopicContext(context);
+    const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
+
+    const ragResponse = await this.chatService.sendMessage(
+      message,
+      this.maxResults,
+      conversationHistory,
+      topicContext,
+      this.selectedAgent
+    );
+
+    return this.convertRAGResponseToChatResponse(ragResponse);
+  }
+
+  async streamMessage(
+    message: string,
+    context: ChatContext,
+    onChunk: (chunk: string) => void,
+    onComplete?: (response: ChatResponse) => void,
+    config?: Partial<AIChatbotConfig>
+  ): Promise<void> {
+    const topicContext = this.convertTopicContext(context);
+    const conversationHistory = this.convertMessagesToSDK(context.conversationHistory);
+
+    await this.chatService.streamMessage(
+      message,
+      this.maxResults,
+      conversationHistory,
+      this.selectedAgent,
+      onChunk,
+      (ragResponse: RAGResponse) => {
+        if (onComplete) {
+          const chatResponse = this.convertRAGResponseToChatResponse(ragResponse);
+          onComplete(chatResponse);
+        }
+      },
+      topicContext,
+      this.streamingThreshold
+    );
+  }
+}
+
+// Import ChatMessage from AIChatbot types for internal use
+type ChatMessage = import('./AIChatbot/types').ChatMessage;
+
+/**
+ * Chatbot - Black box chatbot component with Firebase backend
+ * 
+ * This is a complete, batteries-included chatbot component that requires
+ * only a Firebase app instance to work. It wraps the AIChatbot UI component
+ * with a Firebase-based provider and service layer.
+ * 
+ * @example
+ * ```tsx
+ * import { initializeApp } from 'firebase/app';
+ * import { Chatbot } from 'shockproof-components';
+ * 
+ * const firebaseApp = initializeApp({ ... });
+ * 
+ * function MyApp() {
+ *   return (
+ *     <Chatbot
+ *       firebaseApp={firebaseApp}
+ *       agentName="askRex"
+ *       enableDynamicQuestions={true}
+ *     />
+ *   );
+ * }
+ * ```
+ */
+export function Chatbot(props: ChatbotConfig) {
+  // Merge user config with defaults
+  const config = useMemo(() => mergeWithDefaults(props), [props]);
+
+  // Create ChatService instance
+  const chatService = useMemo(() => {
+    return new ChatService(config.firebaseApp, {
+      useEmulators: config.useEmulators,
+      projectId: config.projectId,
+    });
+  }, [config.firebaseApp, config.useEmulators, config.projectId]);
+
+  // Create Firebase provider
+  const provider = useMemo(() => {
+    return new FirebaseChatProvider(chatService, {
+      agentName: config.agentName,
+      maxResults: config.maxResults,
+      streamingThreshold: config.streamingThreshold,
+    });
+  }, [chatService, config.agentName, config.maxResults, config.streamingThreshold]);
+
+  // Map our config to AIChatbot config
+  const chatbotConfig: AIChatbotConfig = useMemo(() => ({
+    enableStreaming: true,
+    streamingThreshold: config.streamingThreshold,
+    enableSources: true,
+    enableQuestions: config.enableDynamicQuestions,
+    enableTimingInfo: config.showTimingInfo,
+    placeholder: config.placeholder,
+    showAgentSwitcher: true,
+    showTimingInfo: config.showTimingInfo,
+    defaultAgent: config.agentName,
+    maxInitialQuestions: config.maxDynamicQuestions,
+  }), [
+    config.streamingThreshold,
+    config.enableDynamicQuestions,
+    config.showTimingInfo,
+    config.placeholder,
+    config.agentName,
+    config.maxDynamicQuestions,
+  ]);
+
+  // Create callbacks
+  const handleMessageSent = useMemo(() => {
+    return (message: string) => {
+      if (config.onMessageSent) {
+        config.onMessageSent(message);
+      }
+    };
+  }, [config.onMessageSent]);
+
+  const handleMessageReceived = useMemo(() => {
+    return (response: ChatResponse) => {
+      if (config.onResponseReceived) {
+        config.onResponseReceived(response.answer);
+      }
+    };
+  }, [config.onResponseReceived]);
+
+  return (
+    <AIChatbot
+      provider={provider}
+      config={chatbotConfig}
+      onMessageSent={handleMessageSent}
+      onMessageReceived={handleMessageReceived}
+      className={config.className}
+      style={config.style}
+    />
+  );
+}
+
+// Re-export types for convenience
+export type { ChatbotConfig };
+export { ChatService } from './services/ChatService';
+export type { ChatServiceInterface } from './services/ChatServiceInterface';
