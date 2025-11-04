@@ -1,5 +1,5 @@
 import { FirebaseApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, updateDoc, query, orderBy, onSnapshot, Unsubscribe, getDoc, Firestore } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, updateDoc, setDoc, query, orderBy, onSnapshot, Unsubscribe, getDoc, Firestore } from 'firebase/firestore';
 import { getFunctions, httpsCallable, Functions } from 'firebase/functions';
 import { ChatServiceInterface, TopicContext } from './ChatServiceInterface';
 import { ChatMessage, ChatSession, RAGQuery, RAGResponse } from '../types';
@@ -400,16 +400,22 @@ export class ChatService implements ChatServiceInterface {
   }): Promise<void> {
     const DEBUG = await this.getDebugStreamingFlag();
     
+    console.log('� [ChatService] Attempting to save preferences to config/app:', preferences);
+    
     if (DEBUG) {
-      console.log('🔧 [ChatService] Saving preferences to config/app:', preferences);
+      console.log('🔧 [ChatService] DEBUG mode enabled');
     }
     
     try {
       const appConfigRef = doc(this.db, 'config/app');
-      await updateDoc(appConfigRef, preferences);
+      
+      // Use setDoc with merge to create document if it doesn't exist
+      await setDoc(appConfigRef, preferences, { merge: true });
+      
+      console.log('✅ [ChatService] Successfully saved preferences to Firestore');
       
       if (DEBUG) {
-        console.log('✅ [ChatService] Successfully saved preferences to Firestore');
+        console.log('🔧 [ChatService] Preferences saved with merge:true');
       }
     } catch (error) {
       console.error('❌ [ChatService] Failed to save chatbot preferences:', error);

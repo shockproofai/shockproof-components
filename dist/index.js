@@ -36912,14 +36912,17 @@ class ChatService {
      */
     async saveChatbotPreferences(preferences) {
         const DEBUG = await this.getDebugStreamingFlag();
+        console.log('� [ChatService] Attempting to save preferences to config/app:', preferences);
         if (DEBUG) {
-            console.log('🔧 [ChatService] Saving preferences to config/app:', preferences);
+            console.log('🔧 [ChatService] DEBUG mode enabled');
         }
         try {
             const appConfigRef = firestore.doc(this.db, 'config/app');
-            await firestore.updateDoc(appConfigRef, preferences);
+            // Use setDoc with merge to create document if it doesn't exist
+            await firestore.setDoc(appConfigRef, preferences, { merge: true });
+            console.log('✅ [ChatService] Successfully saved preferences to Firestore');
             if (DEBUG) {
-                console.log('✅ [ChatService] Successfully saved preferences to Firestore');
+                console.log('🔧 [ChatService] Preferences saved with merge:true');
             }
         }
         catch (error) {
