@@ -91,6 +91,7 @@ export class ChatService implements ChatServiceInterface {
         historyLength: ragQuery.conversationHistory?.length || 0,
         topicContext: ragQuery.topicContext,
         agentName: selectedAgent,
+        streamingThreshold: streamingThreshold,
       });
     }
 
