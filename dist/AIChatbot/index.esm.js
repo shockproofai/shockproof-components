@@ -36494,6 +36494,12 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         totalTokens: 0,
         responseCount: 0
     });
+    // Sync streaming threshold with config changes
+    React__default.useEffect(() => {
+        if (config.streamingThreshold !== undefined && config.streamingThreshold !== streamingThreshold) {
+            setStreamingThreshold(config.streamingThreshold);
+        }
+    }, [config.streamingThreshold]);
     // Notify session start
     React__default.useEffect(() => {
         if (sessionId && onSessionStart) {

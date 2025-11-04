@@ -70,6 +70,14 @@ export function AIChatbot({
     totalTokens: 0,
     responseCount: 0
   });
+
+  // Sync streaming threshold with config changes
+  React.useEffect(() => {
+    if (config.streamingThreshold !== undefined && config.streamingThreshold !== streamingThreshold) {
+      setStreamingThreshold(config.streamingThreshold);
+    }
+  }, [config.streamingThreshold]);
+
   
   // Notify session start
   React.useEffect(() => {
