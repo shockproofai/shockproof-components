@@ -47,7 +47,6 @@ export function AIChatbot({
     retryLastMessage,
     setSelectedAgent,
     updateStreamingThreshold,
-    startNewSession,
   } = useChatState({
     provider,
     config,

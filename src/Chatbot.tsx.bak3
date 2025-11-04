@@ -88,13 +88,17 @@ class FirebaseChatProvider implements ChatProvider {
 
   getCurrentAgent(): string {
     return this.selectedAgent;
-  }
 
   setStreamingThreshold(threshold: number): void {
     console.log(`🔄 [Chatbot] setStreamingThreshold called with: ${threshold}`);
+    
     this.streamingThreshold = threshold;
     console.log(`✅ [Chatbot] Streaming threshold changed to: ${threshold}`);
+    
+    // Save to Firestore (fire-and-forget)
     this.saveStreamingThresholdPreference(threshold);
+  }
+
   }
 
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {

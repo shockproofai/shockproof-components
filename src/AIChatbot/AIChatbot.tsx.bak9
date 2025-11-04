@@ -46,8 +46,8 @@ export function AIChatbot({
     clearMessages,
     retryLastMessage,
     setSelectedAgent,
-    updateStreamingThreshold,
-    startNewSession,
+    setSelectedAgent,
+    setStreamingThreshold,
   } = useChatState({
     provider,
     config,
@@ -121,8 +121,7 @@ export function AIChatbot({
   // Handle streaming threshold change
   const handleStreamingThresholdChange = (value: string) => {
     const threshold = parseInt(value);
-    setStreamingThreshold(threshold); // Update local state
-    updateStreamingThreshold(threshold); // Persist to Firestore
+    setStreamingThreshold(threshold);
   };
 
   // Handle question click from DynamicQuestions

@@ -96,6 +96,7 @@ class FirebaseChatProvider implements ChatProvider {
     console.log(`✅ [Chatbot] Streaming threshold changed to: ${threshold}`);
     this.saveStreamingThresholdPreference(threshold);
   }
+  }
 
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {
     if (!context?.topicContext) return undefined;

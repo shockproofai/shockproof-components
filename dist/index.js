@@ -319,6 +319,19 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
         }
     }, [provider, onError]);
     /**
+     * Set streaming threshold
+     */
+    const setStreamingThresholdHandler = React.useCallback((threshold) => {
+        if (provider.setStreamingThreshold) {
+            try {
+                provider.setStreamingThreshold(threshold);
+            }
+            catch (error) {
+                onError?.(error instanceof Error ? error : new Error('Failed to set streaming threshold'));
+            }
+        }
+    }, [provider, onError]);
+    /**
      * Start a new session
      */
     const startNewSession = React.useCallback(() => {
@@ -341,6 +354,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
         clearMessages,
         retryLastMessage,
         setSelectedAgent: setSelectedAgentHandler,
+        updateStreamingThreshold: setStreamingThresholdHandler,
         startNewSession,
     };
 }
@@ -36498,7 +36512,7 @@ AlertDescription.displayName = "AlertDescription";
  */
 function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className = '', style, user }) {
     // Use our custom hook for state management
-    const { messages, isLoading, isStreaming, streamingMessage, error, sessionId, selectedAgent, lastResponse, streamingMetrics, sendMessage, clearMessages, retryLastMessage, setSelectedAgent, startNewSession } = useChatState({
+    const { messages, isLoading, isStreaming, streamingMessage, error, sessionId, selectedAgent, lastResponse, streamingMetrics, sendMessage, clearMessages, retryLastMessage, setSelectedAgent, updateStreamingThreshold, startNewSession, } = useChatState({
         provider,
         config,
         onMessageSent,
@@ -36559,7 +36573,8 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     // Handle streaming threshold change
     const handleStreamingThresholdChange = (value) => {
         const threshold = parseInt(value);
-        setStreamingThreshold(threshold);
+        setStreamingThreshold(threshold); // Update local state
+        updateStreamingThreshold(threshold); // Persist to Firestore
     };
     // Handle question click from DynamicQuestions
     const handleQuestionClick = (question, questionData) => {
@@ -37041,6 +37056,12 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
     }
     getCurrentAgent() {
         return this.selectedAgent;
+    }
+    setStreamingThreshold(threshold) {
+        console.log(`🔄 [Chatbot] setStreamingThreshold called with: ${threshold}`);
+        this.streamingThreshold = threshold;
+        console.log(`✅ [Chatbot] Streaming threshold changed to: ${threshold}`);
+        this.saveStreamingThresholdPreference(threshold);
     }
     convertTopicContext(context) {
         if (!context?.topicContext)

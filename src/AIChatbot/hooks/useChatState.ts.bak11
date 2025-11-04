@@ -347,7 +347,7 @@ export function useChatState({
     clearMessages,
     retryLastMessage,
     setSelectedAgent: setSelectedAgentHandler,
-    updateStreamingThreshold: setStreamingThresholdHandler,
+    setStreamingThreshold: setStreamingThresholdHandler,
     startNewSession,
   };
 }

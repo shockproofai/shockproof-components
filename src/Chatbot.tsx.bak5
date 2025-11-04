@@ -97,6 +97,8 @@ class FirebaseChatProvider implements ChatProvider {
     this.saveStreamingThresholdPreference(threshold);
   }
 
+  }
+
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {
     if (!context?.topicContext) return undefined;
     return {
