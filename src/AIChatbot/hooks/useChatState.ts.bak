@@ -38,7 +38,7 @@ export function useChatState({
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
-    provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]
+    provider.getAvailableAgents?.()?.[0]
   );
   const [lastResponse, setLastResponse] = useState<ChatResponse | null>(null);
   const [streamingMetrics, setStreamingMetrics] = useState<{
@@ -308,20 +308,7 @@ export function useChatState({
       }
     }
   }, [provider, onError]);
-
-  /**
-   * Set streaming threshold
-   */
-  const setStreamingThresholdHandler = useCallback((threshold: number) => {
-    if (provider.setStreamingThreshold) {
-      try {
-        provider.setStreamingThreshold(threshold);
-      } catch (error) {
-        onError?.(error instanceof Error ? error : new Error('Failed to set streaming threshold'));
-      }
-    }
-  }, [provider, onError]);
-
+  
   /**
    * Start a new session
    */
@@ -347,7 +334,6 @@ export function useChatState({
     clearMessages,
     retryLastMessage,
     setSelectedAgent: setSelectedAgentHandler,
-    updateStreamingThreshold: setStreamingThresholdHandler,
     startNewSession,
   };
 }

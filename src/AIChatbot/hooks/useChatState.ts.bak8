@@ -323,6 +323,7 @@ export function useChatState({
   }, [provider, onError]);
 
   /**
+  /**
    * Start a new session
    */
   const startNewSession = useCallback(() => {
@@ -347,7 +348,6 @@ export function useChatState({
     clearMessages,
     retryLastMessage,
     setSelectedAgent: setSelectedAgentHandler,
-    updateStreamingThreshold: setStreamingThresholdHandler,
     startNewSession,
   };
 }

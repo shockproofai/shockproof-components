@@ -89,7 +89,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
     const [streamingMessage, setStreamingMessage] = React.useState('');
     const [error, setError] = React.useState(null);
     const [sessionId, setSessionId] = React.useState(null);
-    const [selectedAgent, setSelectedAgent] = React.useState(provider.getAvailableAgents?.()?.[0]);
+    const [selectedAgent, setSelectedAgent] = React.useState(provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]);
     const [lastResponse, setLastResponse] = React.useState(null);
     const [streamingMetrics, setStreamingMetrics] = React.useState(null);
     // Refs for managing state during async operations
@@ -317,6 +317,19 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
         }
     }, [provider, onError]);
     /**
+     * Set streaming threshold
+     */
+    const setStreamingThresholdHandler = React.useCallback((threshold) => {
+        if (provider.setStreamingThreshold) {
+            try {
+                provider.setStreamingThreshold(threshold);
+            }
+            catch (error) {
+                onError?.(error instanceof Error ? error : new Error('Failed to set streaming threshold'));
+            }
+        }
+    }, [provider, onError]);
+    /**
      * Start a new session
      */
     const startNewSession = React.useCallback(() => {
@@ -339,6 +352,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
         clearMessages,
         retryLastMessage,
         setSelectedAgent: setSelectedAgentHandler,
+        updateStreamingThreshold: setStreamingThresholdHandler,
         startNewSession,
     };
 }
@@ -36495,18 +36509,23 @@ AlertDescription.displayName = "AlertDescription";
  * any provider implementation (Firebase, REST API, etc.)
  */
 function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className = '', style, user }) {
+    const messagesEndRef = React.useRef(null);
+    // Local state for streaming threshold
+    const [streamingThreshold, setStreamingThreshold] = React.useState(config.streamingThreshold || 300);
+    // Merge local streaming threshold into config for useChatState
+    const effectiveConfig = React.useMemo(() => ({
+        ...config,
+        streamingThreshold
+    }), [config, streamingThreshold]);
     // Use our custom hook for state management
-    const { messages, isLoading, isStreaming, streamingMessage, error, sessionId, selectedAgent, lastResponse, streamingMetrics, sendMessage, clearMessages, retryLastMessage, setSelectedAgent, startNewSession } = useChatState({
+    const { messages, isLoading, isStreaming, streamingMessage, error, sessionId, selectedAgent, lastResponse, streamingMetrics, sendMessage, clearMessages, retryLastMessage, setSelectedAgent, updateStreamingThreshold, startNewSession, } = useChatState({
         provider,
-        config,
+        config: effectiveConfig,
         onMessageSent,
         onMessageReceived,
         onError,
         user
     });
-    const messagesEndRef = React.useRef(null);
-    // Local state for streaming threshold
-    const [streamingThreshold, setStreamingThreshold] = React.useState(config.streamingThreshold || 300);
     // Track cumulative token usage across the session
     const [cumulativeTokenUsage, setCumulativeTokenUsage] = React.useState({
         totalInputTokens: 0,
@@ -36514,6 +36533,12 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         totalTokens: 0,
         responseCount: 0
     });
+    // Sync streaming threshold with config changes
+    React.useEffect(() => {
+        if (config.streamingThreshold !== undefined && config.streamingThreshold !== streamingThreshold) {
+            setStreamingThreshold(config.streamingThreshold);
+        }
+    }, [config.streamingThreshold]);
     // Notify session start
     React.useEffect(() => {
         if (sessionId && onSessionStart) {
@@ -36551,7 +36576,8 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     // Handle streaming threshold change
     const handleStreamingThresholdChange = (value) => {
         const threshold = parseInt(value);
-        setStreamingThreshold(threshold);
+        setStreamingThreshold(threshold); // Update local state
+        updateStreamingThreshold(threshold); // Persist to Firestore
     };
     // Handle question click from DynamicQuestions
     const handleQuestionClick = (question, questionData) => {

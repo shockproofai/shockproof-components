@@ -140,6 +140,8 @@ export interface ChatProvider {
   // Agent support
   switchAgent?(agentName: string): void;
   getAvailableAgents?(): string[];
+  getCurrentAgent?(): string;
+  setStreamingThreshold?(threshold: number): void;
 }
 
 // Component Props
@@ -189,6 +191,7 @@ export interface ChatActions {
   clearMessages: () => void;
   retryLastMessage: () => Promise<void>;
   setSelectedAgent: (agent: string) => void;
+  updateStreamingThreshold: (threshold: number) => void;
   startNewSession: () => void;
 }
 

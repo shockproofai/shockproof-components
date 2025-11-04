@@ -308,6 +308,7 @@ export function useChatState({
       }
     }
   }, [provider, onError]);
+  }, [provider, onError]);
 
   /**
    * Set streaming threshold
@@ -322,6 +323,7 @@ export function useChatState({
     }
   }, [provider, onError]);
 
+  /**
   /**
    * Start a new session
    */
@@ -347,7 +349,6 @@ export function useChatState({
     clearMessages,
     retryLastMessage,
     setSelectedAgent: setSelectedAgentHandler,
-    updateStreamingThreshold: setStreamingThresholdHandler,
     startNewSession,
   };
 }
