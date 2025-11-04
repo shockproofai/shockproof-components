@@ -36962,27 +36962,49 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
         this.maxResults = config.maxResults || 5;
         this.streamingThreshold = config.streamingThreshold || 300;
     }
-    async switchAgent(agentName) {
+    switchAgent(agentName) {
+        console.log(`🔄 [Chatbot] switchAgent called with: ${agentName}`);
+        console.log(`🔄 [Chatbot] Available agents:`, this.availableAgents);
         // Validate agent is in available agents list
         if (!this.availableAgents.includes(agentName)) {
             console.warn(`❌ [Chatbot] Agent "${agentName}" not in available agents list:`, this.availableAgents);
             return;
         }
         this.selectedAgent = agentName;
-        // Get debug flag and log
-        const DEBUG = await this.chatService.getDebugStreamingFlag();
-        if (DEBUG) {
-            console.log(`🔧 [Chatbot] Switching agent to: ${agentName}`);
-        }
-        // Save to Firestore
+        console.log(`✅ [Chatbot] Agent switched to: ${agentName}`);
+        // Save to Firestore (fire-and-forget)
+        this.saveAgentPreference(agentName);
+    }
+    async saveAgentPreference(agentName) {
         try {
-            await this.chatService.saveChatbotPreferences({ selectedAgent: agentName });
+            const DEBUG = await this.chatService.getDebugStreamingFlag();
             if (DEBUG) {
-                console.log(`✅ [Chatbot] Saved agent preference to Firestore: ${agentName}`);
+                console.log(`🔧 [Chatbot] Saving agent preference: ${agentName}`);
+            }
+            await this.chatService.saveChatbotPreferences({ selectedAgent: agentName });
+            console.log(`💾 [Chatbot] Saved agent preference to Firestore: ${agentName}`);
+            if (DEBUG) {
+                console.log(`✅ [Chatbot] Debug: Save complete`);
             }
         }
         catch (err) {
             console.error('❌ [Chatbot] Failed to save agent preference:', err);
+        }
+    }
+    async saveStreamingThresholdPreference(threshold) {
+        try {
+            const DEBUG = await this.chatService.getDebugStreamingFlag();
+            if (DEBUG) {
+                console.log(`🔧 [Chatbot] Saving streaming threshold: ${threshold}`);
+            }
+            await this.chatService.saveChatbotPreferences({ streamingThreshold: threshold });
+            console.log(`💾 [Chatbot] Saved streaming threshold to Firestore: ${threshold}`);
+            if (DEBUG) {
+                console.log(`✅ [Chatbot] Debug: Save complete`);
+            }
+        }
+        catch (err) {
+            console.error('❌ [Chatbot] Failed to save streaming threshold:', err);
         }
     }
     getAvailableAgents() {
@@ -37044,19 +37066,8 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
         // Save streaming threshold if it changed
         if (config?.streamingThreshold !== undefined && config.streamingThreshold !== this.streamingThreshold) {
             this.streamingThreshold = config.streamingThreshold;
-            const DEBUG = await this.chatService.getDebugStreamingFlag();
-            if (DEBUG) {
-                console.log(`🔧 [Chatbot] Streaming threshold changed to: ${config.streamingThreshold}`);
-            }
-            try {
-                await this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold });
-                if (DEBUG) {
-                    console.log(`✅ [Chatbot] Saved streaming threshold to Firestore: ${config.streamingThreshold}`);
-                }
-            }
-            catch (err) {
-                console.error('❌ [Chatbot] Failed to save streaming threshold preference:', err);
-            }
+            console.log(`� [Chatbot] Streaming threshold changed to: ${config.streamingThreshold}`);
+            this.saveStreamingThresholdPreference(config.streamingThreshold);
         }
         await this.chatService.streamMessage(message, this.maxResults, conversationHistory, this.selectedAgent, onChunk, (ragResponse) => {
             if (onComplete) {
