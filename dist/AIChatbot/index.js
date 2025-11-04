@@ -89,7 +89,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
     const [streamingMessage, setStreamingMessage] = React.useState('');
     const [error, setError] = React.useState(null);
     const [sessionId, setSessionId] = React.useState(null);
-    const [selectedAgent, setSelectedAgent] = React.useState(provider.getAvailableAgents?.()?.[0]);
+    const [selectedAgent, setSelectedAgent] = React.useState(provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]);
     const [lastResponse, setLastResponse] = React.useState(null);
     const [streamingMetrics, setStreamingMetrics] = React.useState(null);
     // Refs for managing state during async operations

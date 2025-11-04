@@ -140,6 +140,7 @@ export interface ChatProvider {
   // Agent support
   switchAgent?(agentName: string): void;
   getAvailableAgents?(): string[];
+  getCurrentAgent?(): string;
 }
 
 // Component Props

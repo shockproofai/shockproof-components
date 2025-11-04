@@ -4,7 +4,7 @@ import * as React from 'react';
 import React__default, { useState, useRef, useEffect, useCallback, forwardRef, createElement, useLayoutEffect, useMemo } from 'react';
 import * as ReactDOM from 'react-dom';
 import ReactDOM__default from 'react-dom';
-import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // Unique ID creation requires a high quality random # generator. In the browser we therefore
@@ -71,7 +71,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
     const [streamingMessage, setStreamingMessage] = useState('');
     const [error, setError] = useState(null);
     const [sessionId, setSessionId] = useState(null);
-    const [selectedAgent, setSelectedAgent] = useState(provider.getAvailableAgents?.()?.[0]);
+    const [selectedAgent, setSelectedAgent] = useState(provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]);
     const [lastResponse, setLastResponse] = useState(null);
     const [streamingMetrics, setStreamingMetrics] = useState(null);
     // Refs for managing state during async operations
@@ -36899,7 +36899,7 @@ class ChatService {
         try {
             const appConfigRef = doc(this.db, 'config/app');
             // Use setDoc with merge to create document if it doesn't exist
-            await setDoc(appConfigRef, preferences, { merge: true });
+            await setDoc(appConfigRef, { ...preferences, updatedAt: Timestamp.now() }, { merge: true });
             console.log('✅ [ChatService] Successfully saved preferences to Firestore');
             if (DEBUG) {
                 console.log('🔧 [ChatService] Preferences saved with merge:true');
@@ -37012,6 +37012,9 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
     }
     getAvailableAgents() {
         return this.availableAgents;
+    }
+    getCurrentAgent() {
+        return this.selectedAgent;
     }
     convertTopicContext(context) {
         if (!context?.topicContext)

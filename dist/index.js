@@ -91,7 +91,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
     const [streamingMessage, setStreamingMessage] = React.useState('');
     const [error, setError] = React.useState(null);
     const [sessionId, setSessionId] = React.useState(null);
-    const [selectedAgent, setSelectedAgent] = React.useState(provider.getAvailableAgents?.()?.[0]);
+    const [selectedAgent, setSelectedAgent] = React.useState(provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]);
     const [lastResponse, setLastResponse] = React.useState(null);
     const [streamingMetrics, setStreamingMetrics] = React.useState(null);
     // Refs for managing state during async operations
@@ -36919,7 +36919,7 @@ class ChatService {
         try {
             const appConfigRef = firestore.doc(this.db, 'config/app');
             // Use setDoc with merge to create document if it doesn't exist
-            await firestore.setDoc(appConfigRef, preferences, { merge: true });
+            await firestore.setDoc(appConfigRef, { ...preferences, updatedAt: firestore.Timestamp.now() }, { merge: true });
             console.log('✅ [ChatService] Successfully saved preferences to Firestore');
             if (DEBUG) {
                 console.log('🔧 [ChatService] Preferences saved with merge:true');
@@ -37032,6 +37032,9 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
     }
     getAvailableAgents() {
         return this.availableAgents;
+    }
+    getCurrentAgent() {
+        return this.selectedAgent;
     }
     convertTopicContext(context) {
         if (!context?.topicContext)

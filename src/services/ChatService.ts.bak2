@@ -1,5 +1,5 @@
 import { FirebaseApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, updateDoc, setDoc, query, orderBy, onSnapshot, Unsubscribe, getDoc, Firestore, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, updateDoc, setDoc, query, orderBy, onSnapshot, Unsubscribe, getDoc, Firestore } from 'firebase/firestore, Timestamp';
 import { getFunctions, httpsCallable, Functions } from 'firebase/functions';
 import { ChatServiceInterface, TopicContext } from './ChatServiceInterface';
 import { ChatMessage, ChatSession, RAGQuery, RAGResponse } from '../types';
@@ -408,8 +408,9 @@ export class ChatService implements ChatServiceInterface {
     
     try {
       const appConfigRef = doc(this.db, 'config/app');
+      
       // Use setDoc with merge to create document if it doesn't exist
-      await setDoc(appConfigRef, { ...preferences, updatedAt: Timestamp.now() }, { merge: true });
+      await setDoc(appConfigRef, preferences, { merge: true });
       
       console.log('✅ [ChatService] Successfully saved preferences to Firestore');
       

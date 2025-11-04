@@ -38,7 +38,7 @@ export function useChatState({
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
-    provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]
+    provider.getAvailableAgents?.()?.[0]
   );
   const [lastResponse, setLastResponse] = useState<ChatResponse | null>(null);
   const [streamingMetrics, setStreamingMetrics] = useState<{

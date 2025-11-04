@@ -86,6 +86,10 @@ class FirebaseChatProvider implements ChatProvider {
     return this.availableAgents;
   }
 
+  getCurrentAgent(): string {
+    return this.selectedAgent;
+  }
+
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {
     if (!context?.topicContext) return undefined;
     return {
