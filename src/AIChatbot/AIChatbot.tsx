@@ -31,6 +31,19 @@ export function AIChatbot({
   user
 }: AIChatbotProps) {
   
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Local state for streaming threshold
+  const [streamingThreshold, setStreamingThreshold] = React.useState<number>(
+    config.streamingThreshold || 300
+  );
+
+  // Merge local streaming threshold into config for useChatState
+  const effectiveConfig = React.useMemo(() => ({
+    ...config,
+    streamingThreshold
+  }), [config, streamingThreshold]);
+
   // Use our custom hook for state management
   const {
     messages,
@@ -50,19 +63,12 @@ export function AIChatbot({
     startNewSession,
   } = useChatState({
     provider,
-    config,
+    config: effectiveConfig,
     onMessageSent,
     onMessageReceived,
     onError,
     user
   });
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Local state for streaming threshold
-  const [streamingThreshold, setStreamingThreshold] = React.useState<number>(
-    config.streamingThreshold || 300
-  );
 
   // Track cumulative token usage across the session
   const [cumulativeTokenUsage, setCumulativeTokenUsage] = useState<CumulativeTokenUsage>({

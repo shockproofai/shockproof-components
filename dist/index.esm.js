@@ -36491,18 +36491,23 @@ AlertDescription.displayName = "AlertDescription";
  * any provider implementation (Firebase, REST API, etc.)
  */
 function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className = '', style, user }) {
+    const messagesEndRef = useRef(null);
+    // Local state for streaming threshold
+    const [streamingThreshold, setStreamingThreshold] = React__default.useState(config.streamingThreshold || 300);
+    // Merge local streaming threshold into config for useChatState
+    const effectiveConfig = React__default.useMemo(() => ({
+        ...config,
+        streamingThreshold
+    }), [config, streamingThreshold]);
     // Use our custom hook for state management
     const { messages, isLoading, isStreaming, streamingMessage, error, sessionId, selectedAgent, lastResponse, streamingMetrics, sendMessage, clearMessages, retryLastMessage, setSelectedAgent, updateStreamingThreshold, startNewSession, } = useChatState({
         provider,
-        config,
+        config: effectiveConfig,
         onMessageSent,
         onMessageReceived,
         onError,
         user
     });
-    const messagesEndRef = useRef(null);
-    // Local state for streaming threshold
-    const [streamingThreshold, setStreamingThreshold] = React__default.useState(config.streamingThreshold || 300);
     // Track cumulative token usage across the session
     const [cumulativeTokenUsage, setCumulativeTokenUsage] = useState({
         totalInputTokens: 0,
