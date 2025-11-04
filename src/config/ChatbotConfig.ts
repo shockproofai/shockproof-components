@@ -20,9 +20,15 @@ export interface ChatbotConfig {
   projectId?: string;
 
   /**
-   * Agent to use for chat responses (optional, default: 'askRex')
+   * Agent to use for chat responses (optional, default: first agent in availableAgents or 'askRex')
    */
-  agentName?: 'askRex' | 'askRexTest';
+  agentName?: string;
+
+  /**
+   * List of available agent names from Firestore agents collection (optional, default: ['askRex'])
+   * These should match the document IDs in your Firestore 'agents' collection
+   */
+  availableAgents?: string[];
 
   /**
    * Maximum number of context documents to retrieve (optional, default: 5)

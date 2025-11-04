@@ -36891,12 +36891,19 @@ class ChatService {
      * Save chatbot preferences to Firestore config/app
      */
     async saveChatbotPreferences(preferences) {
+        const DEBUG = await this.getDebugStreamingFlag();
+        if (DEBUG) {
+            console.log('🔧 [ChatService] Saving preferences to config/app:', preferences);
+        }
         try {
             const appConfigRef = doc(this.db, 'config/app');
             await updateDoc(appConfigRef, preferences);
+            if (DEBUG) {
+                console.log('✅ [ChatService] Successfully saved preferences to Firestore');
+            }
         }
         catch (error) {
-            console.error('Failed to save chatbot preferences:', error);
+            console.error('❌ [ChatService] Failed to save chatbot preferences:', error);
             throw new Error('Failed to save preferences');
         }
     }
@@ -36908,6 +36915,7 @@ class ChatService {
 const defaultChatbotConfig = {
     useEmulators: false,
     agentName: 'askRex',
+    availableAgents: ['askRex'],
     maxResults: 5,
     streamingThreshold: 300,
     enableDynamicQuestions: true,
@@ -36928,6 +36936,7 @@ function mergeWithDefaults(userConfig) {
         useEmulators: userConfig.useEmulators ?? defaultChatbotConfig.useEmulators,
         projectId: userConfig.projectId ?? userConfig.firebaseApp.options.projectId ?? 'shockproof-dev',
         agentName: userConfig.agentName ?? defaultChatbotConfig.agentName,
+        availableAgents: userConfig.availableAgents ?? defaultChatbotConfig.availableAgents,
         maxResults: userConfig.maxResults ?? defaultChatbotConfig.maxResults,
         streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold,
         enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions,
@@ -36946,22 +36955,38 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
         this.selectedAgent = 'askRex';
         this.maxResults = 5;
         this.streamingThreshold = 300;
+        this.availableAgents = ['askRex'];
         this.chatService = chatService;
-        this.selectedAgent = config.agentName || 'askRex';
+        this.availableAgents = config.availableAgents || ['askRex'];
+        this.selectedAgent = config.agentName || this.availableAgents[0];
         this.maxResults = config.maxResults || 5;
         this.streamingThreshold = config.streamingThreshold || 300;
     }
-    switchAgent(agentName) {
-        if (agentName === 'askRex' || agentName === 'askRexTest') {
-            this.selectedAgent = agentName;
-            // Save to Firestore
-            this.chatService.saveChatbotPreferences({ selectedAgent: agentName }).catch(err => {
-                console.error('Failed to save agent preference:', err);
-            });
+    async switchAgent(agentName) {
+        // Validate agent is in available agents list
+        if (!this.availableAgents.includes(agentName)) {
+            console.warn(`❌ [Chatbot] Agent "${agentName}" not in available agents list:`, this.availableAgents);
+            return;
+        }
+        this.selectedAgent = agentName;
+        // Get debug flag and log
+        const DEBUG = await this.chatService.getDebugStreamingFlag();
+        if (DEBUG) {
+            console.log(`🔧 [Chatbot] Switching agent to: ${agentName}`);
+        }
+        // Save to Firestore
+        try {
+            await this.chatService.saveChatbotPreferences({ selectedAgent: agentName });
+            if (DEBUG) {
+                console.log(`✅ [Chatbot] Saved agent preference to Firestore: ${agentName}`);
+            }
+        }
+        catch (err) {
+            console.error('❌ [Chatbot] Failed to save agent preference:', err);
         }
     }
     getAvailableAgents() {
-        return ['askRex', 'askRexTest'];
+        return this.availableAgents;
     }
     convertTopicContext(context) {
         if (!context?.topicContext)
@@ -37019,9 +37044,19 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
         // Save streaming threshold if it changed
         if (config?.streamingThreshold !== undefined && config.streamingThreshold !== this.streamingThreshold) {
             this.streamingThreshold = config.streamingThreshold;
-            this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold }).catch(err => {
-                console.error('Failed to save streaming threshold preference:', err);
-            });
+            const DEBUG = await this.chatService.getDebugStreamingFlag();
+            if (DEBUG) {
+                console.log(`🔧 [Chatbot] Streaming threshold changed to: ${config.streamingThreshold}`);
+            }
+            try {
+                await this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold });
+                if (DEBUG) {
+                    console.log(`✅ [Chatbot] Saved streaming threshold to Firestore: ${config.streamingThreshold}`);
+                }
+            }
+            catch (err) {
+                console.error('❌ [Chatbot] Failed to save streaming threshold preference:', err);
+            }
         }
         await this.chatService.streamMessage(message, this.maxResults, conversationHistory, this.selectedAgent, onChunk, (ragResponse) => {
             if (onComplete) {
@@ -37070,10 +37105,11 @@ function Chatbot(props) {
     const provider = useMemo(() => {
         return new FirebaseChatProvider$1(chatService, {
             agentName: config.agentName,
+            availableAgents: config.availableAgents,
             maxResults: config.maxResults,
             streamingThreshold: config.streamingThreshold,
         });
-    }, [chatService, config.agentName, config.maxResults, config.streamingThreshold]);
+    }, [chatService, config.agentName, config.availableAgents, config.maxResults, config.streamingThreshold]);
     // Map our config to AIChatbot config
     const chatbotConfig = useMemo(() => ({
         enableStreaming: true,

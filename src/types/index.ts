@@ -50,7 +50,7 @@ export interface RAGQuery {
     timestamp?: Date;
   }>;
   topicContext?: TopicContext;
-  agentName?: 'askRex' | 'askRexTest';
+  agentName?: string;
   streamingThreshold?: number;
 }
 

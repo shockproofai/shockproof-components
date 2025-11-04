@@ -11,33 +11,52 @@ import { ChatMessage as SDKChatMessage, RAGResponse, TopicContext } from './type
 class FirebaseChatProvider implements ChatProvider {
   name = 'firebase';
   private chatService: ChatService;
-  private selectedAgent: 'askRex' | 'askRexTest' = 'askRex';
+  private selectedAgent: string = 'askRex';
   private maxResults: number = 5;
   private streamingThreshold: number = 300;
+  private availableAgents: string[] = ['askRex'];
 
   constructor(chatService: ChatService, config: {
-    agentName?: 'askRex' | 'askRexTest';
+    agentName?: string;
     maxResults?: number;
     streamingThreshold?: number;
+    availableAgents?: string[];
   }) {
     this.chatService = chatService;
-    this.selectedAgent = config.agentName || 'askRex';
+    this.availableAgents = config.availableAgents || ['askRex'];
+    this.selectedAgent = config.agentName || this.availableAgents[0];
     this.maxResults = config.maxResults || 5;
     this.streamingThreshold = config.streamingThreshold || 300;
   }
 
-  switchAgent(agentName: string): void {
-    if (agentName === 'askRex' || agentName === 'askRexTest') {
-      this.selectedAgent = agentName;
-      // Save to Firestore
-      this.chatService.saveChatbotPreferences({ selectedAgent: agentName }).catch(err => {
-        console.error('Failed to save agent preference:', err);
-      });
+  async switchAgent(agentName: string): Promise<void> {
+    // Validate agent is in available agents list
+    if (!this.availableAgents.includes(agentName)) {
+      console.warn(`❌ [Chatbot] Agent "${agentName}" not in available agents list:`, this.availableAgents);
+      return;
+    }
+
+    this.selectedAgent = agentName;
+    
+    // Get debug flag and log
+    const DEBUG = await this.chatService.getDebugStreamingFlag();
+    if (DEBUG) {
+      console.log(`🔧 [Chatbot] Switching agent to: ${agentName}`);
+    }
+    
+    // Save to Firestore
+    try {
+      await this.chatService.saveChatbotPreferences({ selectedAgent: agentName });
+      if (DEBUG) {
+        console.log(`✅ [Chatbot] Saved agent preference to Firestore: ${agentName}`);
+      }
+    } catch (err) {
+      console.error('❌ [Chatbot] Failed to save agent preference:', err);
     }
   }
 
   getAvailableAgents(): string[] {
-    return ['askRex', 'askRexTest'];
+    return this.availableAgents;
   }
 
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {
@@ -119,9 +138,20 @@ class FirebaseChatProvider implements ChatProvider {
     // Save streaming threshold if it changed
     if (config?.streamingThreshold !== undefined && config.streamingThreshold !== this.streamingThreshold) {
       this.streamingThreshold = config.streamingThreshold;
-      this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold }).catch(err => {
-        console.error('Failed to save streaming threshold preference:', err);
-      });
+      
+      const DEBUG = await this.chatService.getDebugStreamingFlag();
+      if (DEBUG) {
+        console.log(`🔧 [Chatbot] Streaming threshold changed to: ${config.streamingThreshold}`);
+      }
+      
+      try {
+        await this.chatService.saveChatbotPreferences({ streamingThreshold: config.streamingThreshold });
+        if (DEBUG) {
+          console.log(`✅ [Chatbot] Saved streaming threshold to Firestore: ${config.streamingThreshold}`);
+        }
+      } catch (err) {
+        console.error('❌ [Chatbot] Failed to save streaming threshold preference:', err);
+      }
     }
 
     await this.chatService.streamMessage(
@@ -186,10 +216,11 @@ export function Chatbot(props: ChatbotConfig) {
   const provider = useMemo(() => {
     return new FirebaseChatProvider(chatService, {
       agentName: config.agentName,
+      availableAgents: config.availableAgents,
       maxResults: config.maxResults,
       streamingThreshold: config.streamingThreshold,
     });
-  }, [chatService, config.agentName, config.maxResults, config.streamingThreshold]);
+  }, [chatService, config.agentName, config.availableAgents, config.maxResults, config.streamingThreshold]);
 
   // Map our config to AIChatbot config
   const chatbotConfig: AIChatbotConfig = useMemo(() => ({

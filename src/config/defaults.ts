@@ -6,6 +6,7 @@ import { ChatbotConfig } from './ChatbotConfig';
 export const defaultChatbotConfig: Partial<ChatbotConfig> = {
   useEmulators: false,
   agentName: 'askRex',
+  availableAgents: ['askRex'],
   maxResults: 5,
   streamingThreshold: 300,
   enableDynamicQuestions: true,
@@ -27,6 +28,7 @@ export function mergeWithDefaults(userConfig: ChatbotConfig): Required<Omit<Chat
     useEmulators: userConfig.useEmulators ?? defaultChatbotConfig.useEmulators!,
     projectId: userConfig.projectId ?? userConfig.firebaseApp.options.projectId ?? 'shockproof-dev',
     agentName: userConfig.agentName ?? defaultChatbotConfig.agentName!,
+    availableAgents: userConfig.availableAgents ?? defaultChatbotConfig.availableAgents!,
     maxResults: userConfig.maxResults ?? defaultChatbotConfig.maxResults!,
     streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold!,
     enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions!,

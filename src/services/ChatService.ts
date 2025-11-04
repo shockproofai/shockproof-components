@@ -27,7 +27,7 @@ export class ChatService implements ChatServiceInterface {
   /**
    * Read debug streaming flag from Firestore config/app document
    */
-  private async getDebugStreamingFlag(): Promise<boolean> {
+  async getDebugStreamingFlag(): Promise<boolean> {
     try {
       const appConfigRef = doc(this.db, 'config/app');
       const appConfigSnap = await getDoc(appConfigRef);
@@ -52,7 +52,7 @@ export class ChatService implements ChatServiceInterface {
     query: string,
     maxResults: number,
     conversationHistory: ChatMessage[],
-    selectedAgent: 'askRex' | 'askRexTest',
+    selectedAgent: string,
     onChunk: (chunk: string) => void,
     onDone?: (final: RAGResponse) => void,
     topicContext?: TopicContext,
@@ -219,7 +219,7 @@ export class ChatService implements ChatServiceInterface {
     maxResults: number = 5,
     conversationHistory: ChatMessage[] = [],
     topicContext?: TopicContext,
-    selectedAgent: 'askRex' | 'askRexTest' = 'askRex'
+    selectedAgent: string = 'askRex'
   ): Promise<RAGResponse> {
     try {
       console.log('🚀 Sending RAG query with agent:', selectedAgent);
@@ -240,7 +240,7 @@ export class ChatService implements ChatServiceInterface {
     maxResults: number,
     conversationHistory: ChatMessage[],
     topicContext?: TopicContext,
-    selectedAgent: 'askRex' | 'askRexTest' = 'askRex'
+    selectedAgent: string = 'askRex'
   ): Promise<RAGResponse> {
     // Call the Firestore RAG function
     const firestoreRagQuery = httpsCallable<RAGQuery, RAGResponse>(this.functions, 'firestoreRagChatQuery');
@@ -370,7 +370,7 @@ export class ChatService implements ChatServiceInterface {
    * Get chatbot preferences from Firestore config/app
    */
   async getChatbotPreferences(): Promise<{
-    selectedAgent?: 'askRex' | 'askRexTest';
+    selectedAgent?: string;
     streamingThreshold?: number;
   }> {
     try {
@@ -380,7 +380,7 @@ export class ChatService implements ChatServiceInterface {
       if (appConfigSnap.exists()) {
         const data = appConfigSnap.data();
         return {
-          selectedAgent: data.selectedAgent as 'askRex' | 'askRexTest' | undefined,
+          selectedAgent: data.selectedAgent as string | undefined,
           streamingThreshold: typeof data.streamingThreshold === 'number' ? data.streamingThreshold : undefined,
         };
       }
@@ -395,14 +395,24 @@ export class ChatService implements ChatServiceInterface {
    * Save chatbot preferences to Firestore config/app
    */
   async saveChatbotPreferences(preferences: {
-    selectedAgent?: 'askRex' | 'askRexTest';
+    selectedAgent?: string;
     streamingThreshold?: number;
   }): Promise<void> {
+    const DEBUG = await this.getDebugStreamingFlag();
+    
+    if (DEBUG) {
+      console.log('🔧 [ChatService] Saving preferences to config/app:', preferences);
+    }
+    
     try {
       const appConfigRef = doc(this.db, 'config/app');
       await updateDoc(appConfigRef, preferences);
+      
+      if (DEBUG) {
+        console.log('✅ [ChatService] Successfully saved preferences to Firestore');
+      }
     } catch (error) {
-      console.error('Failed to save chatbot preferences:', error);
+      console.error('❌ [ChatService] Failed to save chatbot preferences:', error);
       throw new Error('Failed to save preferences');
     }
   }

@@ -20,7 +20,7 @@ export interface ChatServiceInterface {
    * @param query - User's question or message
    * @param maxResults - Maximum number of context documents to retrieve
    * @param conversationHistory - Previous messages in the conversation
-   * @param selectedAgent - Agent to use ('askRex' or 'askRexTest')
+   * @param selectedAgent - Agent name from Firestore agents collection
    * @param onChunk - Callback for each streamed chunk
    * @param onDone - Callback when streaming is complete
    * @param topicContext - Optional topic context for better responses
@@ -30,7 +30,7 @@ export interface ChatServiceInterface {
     query: string,
     maxResults: number,
     conversationHistory: ChatMessage[],
-    selectedAgent: 'askRex' | 'askRexTest',
+    selectedAgent: string,
     onChunk: (chunk: string) => void,
     onDone?: (final: RAGResponse) => void,
     topicContext?: TopicContext,
@@ -43,14 +43,14 @@ export interface ChatServiceInterface {
    * @param maxResults - Maximum number of context documents to retrieve
    * @param conversationHistory - Previous messages in the conversation
    * @param topicContext - Optional topic context for better responses
-   * @param selectedAgent - Agent to use ('askRex' or 'askRexTest')
+   * @param selectedAgent - Agent name from Firestore agents collection
    */
   sendMessage(
     query: string,
     maxResults?: number,
     conversationHistory?: ChatMessage[],
     topicContext?: TopicContext,
-    selectedAgent?: 'askRex' | 'askRexTest'
+    selectedAgent?: string
   ): Promise<RAGResponse>;
 
   /**
