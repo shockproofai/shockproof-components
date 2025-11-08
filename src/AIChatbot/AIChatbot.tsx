@@ -78,6 +78,49 @@ export function AIChatbot({
     responseCount: 0
   });
 
+  // Load questions from provider if not provided in config
+  const [loadedQuestions, setLoadedQuestions] = useState<any[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+
+  // Load chatbot config from provider (Firestore config/app)
+  const [firestoreConfig, setFirestoreConfig] = useState<Record<string, any>>({});
+  const [configLoading, setConfigLoading] = useState(false);
+
+  // Load config from provider if available
+  React.useEffect(() => {
+    if (provider.getChatbotConfig && !configLoading && Object.keys(firestoreConfig).length === 0) {
+      setConfigLoading(true);
+      provider.getChatbotConfig()
+        .then((cfg) => {
+          setFirestoreConfig(cfg);
+          setConfigLoading(false);
+        })
+        .catch((error) => {
+          console.error('Failed to load chatbot config from provider:', error);
+          setConfigLoading(false);
+        });
+    }
+  }, [provider, configLoading, firestoreConfig]);
+
+  React.useEffect(() => {
+    // Only load from provider if no questions in config and provider has getQuestions
+    if (!config.questions && provider.getQuestions && !questionsLoading && loadedQuestions.length === 0) {
+      setQuestionsLoading(true);
+      provider.getQuestions()
+        .then((questions) => {
+          setLoadedQuestions(questions);
+          setQuestionsLoading(false);
+        })
+        .catch((error) => {
+          console.error('Failed to load questions from provider:', error);
+          setQuestionsLoading(false);
+        });
+    }
+  }, [config.questions, provider, questionsLoading, loadedQuestions.length]);
+
+  // Use loaded questions if config doesn't provide them
+  const questionsToUse = config.questions || loadedQuestions;
+
   // Sync streaming threshold with config changes
   React.useEffect(() => {
     if (config.streamingThreshold !== undefined && config.streamingThreshold !== streamingThreshold) {
@@ -168,7 +211,7 @@ export function AIChatbot({
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <div>
+              <div>   
                 <CardTitle className="flex items-center gap-2">
                   {config.title || "Ask Rex"}
                 </CardTitle>
@@ -179,7 +222,7 @@ export function AIChatbot({
             </div>
             <div className="flex items-center gap-2">
               {/* Agent Selector */}
-              {(config.showAgentSwitcher || config.showAgentSelector) && provider.getAvailableAgents && (
+              {(firestoreConfig.showAgentSelector ?? config.showAgentSwitcher ?? config.showAgentSelector) && provider.getAvailableAgents && (
                 <Select value={selectedAgent || ''} onValueChange={handleAgentChange}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
@@ -202,7 +245,7 @@ export function AIChatbot({
               )}
 
               {/* Streaming Threshold */}
-              {config.enableStreaming && config.showStreamingSelector && (
+              {config.enableStreaming && (firestoreConfig.showStreamingSelector ?? config.showStreamingSelector) && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -283,7 +326,7 @@ export function AIChatbot({
                 <DynamicQuestions
                   onQuestionClick={handleQuestionClick}
                   isLoading={isLoading}
-                  questions={config.questions}
+                  questions={questionsToUse}
                   maxInitialQuestions={config.maxInitialQuestions}
                   fallbackQuestions={config.fallbackQuestions}
                 />

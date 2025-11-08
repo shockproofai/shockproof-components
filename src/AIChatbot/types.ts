@@ -139,6 +139,9 @@ export interface ChatProvider {
   // Questions support
   getQuestions?(): Promise<ChatQuestion[]>;
   
+  // Config support
+  getChatbotConfig?(): Promise<Record<string, any>>;
+  
   // Agent support
   switchAgent?(agentName: string): void;
   getAvailableAgents?(): string[];

@@ -36509,6 +36509,44 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         totalTokens: 0,
         responseCount: 0
     });
+    // Load questions from provider if not provided in config
+    const [loadedQuestions, setLoadedQuestions] = React.useState([]);
+    const [questionsLoading, setQuestionsLoading] = React.useState(false);
+    // Load chatbot config from provider (Firestore config/app)
+    const [firestoreConfig, setFirestoreConfig] = React.useState({});
+    const [configLoading, setConfigLoading] = React.useState(false);
+    // Load config from provider if available
+    React.useEffect(() => {
+        if (provider.getChatbotConfig && !configLoading && Object.keys(firestoreConfig).length === 0) {
+            setConfigLoading(true);
+            provider.getChatbotConfig()
+                .then((cfg) => {
+                setFirestoreConfig(cfg);
+                setConfigLoading(false);
+            })
+                .catch((error) => {
+                console.error('Failed to load chatbot config from provider:', error);
+                setConfigLoading(false);
+            });
+        }
+    }, [provider, configLoading, firestoreConfig]);
+    React.useEffect(() => {
+        // Only load from provider if no questions in config and provider has getQuestions
+        if (!config.questions && provider.getQuestions && !questionsLoading && loadedQuestions.length === 0) {
+            setQuestionsLoading(true);
+            provider.getQuestions()
+                .then((questions) => {
+                setLoadedQuestions(questions);
+                setQuestionsLoading(false);
+            })
+                .catch((error) => {
+                console.error('Failed to load questions from provider:', error);
+                setQuestionsLoading(false);
+            });
+        }
+    }, [config.questions, provider, questionsLoading, loadedQuestions.length]);
+    // Use loaded questions if config doesn't provide them
+    const questionsToUse = config.questions || loadedQuestions;
     // Sync streaming threshold with config changes
     React.useEffect(() => {
         if (config.streamingThreshold !== undefined && config.streamingThreshold !== streamingThreshold) {
@@ -36572,7 +36610,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         clearMessages();
         startNewSession();
     };
-    return (jsxRuntime.jsxs("div", { className: `flex flex-col h-full max-h-screen ${className}`, style: style, "data-theme": config.theme || 'auto', children: [jsxRuntime.jsx(CardHeader, { className: "border-b bg-gradient-to-r from-blue-50 to-purple-50", children: jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [jsxRuntime.jsxs("div", { className: "flex items-center gap-3", children: [jsxRuntime.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-5 h-5 text-white" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx(CardTitle, { className: "flex items-center gap-2", children: config.title || "Ask Rex" }), config.subtitle && (jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: config.subtitle }))] })] }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [(config.showAgentSwitcher || config.showAgentSelector) && provider.getAvailableAgents && (jsxRuntime.jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents().map((agent) => (jsxRuntime.jsx(SelectItem, { value: agent, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsxRuntime.jsx(Bot, { className: "w-4 h-4" })) : (jsxRuntime.jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && config.showStreamingSelector && (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs(Tooltip, { children: [jsxRuntime.jsx(TooltipTrigger, { asChild: true, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-1", children: [jsxRuntime.jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsxs(SelectContent, { className: "z-50", children: [jsxRuntime.jsx(SelectItem, { value: "0", children: "Always Stream" }), jsxRuntime.jsx(SelectItem, { value: "300", children: "300 chars" }), jsxRuntime.jsx(SelectItem, { value: "500", children: "500 chars" }), jsxRuntime.jsx(SelectItem, { value: "1000", children: "1K chars" }), jsxRuntime.jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsxRuntime.jsx(SelectItem, { value: "2000", children: "2K chars" }), jsxRuntime.jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsxRuntime.jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsxRuntime.jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxRuntime.jsxs("div", { className: "space-y-2", children: [jsxRuntime.jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsxRuntime.jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsxRuntime.jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxRuntime.jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), jsxRuntime.jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsxRuntime.jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] })] })] }) }), jsxRuntime.jsxs(CardContent, { className: "flex-1 overflow-y-auto p-4 space-y-4", children: [messages.length === 0 ? (jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center flex-1 text-center space-y-4", children: [config.welcomeMessage && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-8 h-8 text-blue-500" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" }), jsxRuntime.jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage })] })] })), config.enableQuestions && (jsxRuntime.jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: config.questions, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions }))] })) : (jsxRuntime.jsxs("div", { className: "space-y-4 break-words", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
+    return (jsxRuntime.jsxs("div", { className: `flex flex-col h-full max-h-screen ${className}`, style: style, "data-theme": config.theme || 'auto', children: [jsxRuntime.jsx(CardHeader, { className: "border-b bg-gradient-to-r from-blue-50 to-purple-50", children: jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [jsxRuntime.jsxs("div", { className: "flex items-center gap-3", children: [jsxRuntime.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-5 h-5 text-white" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx(CardTitle, { className: "flex items-center gap-2", children: config.title || "Ask Rex" }), config.subtitle && (jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: config.subtitle }))] })] }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [(firestoreConfig.showAgentSelector ?? config.showAgentSwitcher ?? config.showAgentSelector) && provider.getAvailableAgents && (jsxRuntime.jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents().map((agent) => (jsxRuntime.jsx(SelectItem, { value: agent, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsxRuntime.jsx(Bot, { className: "w-4 h-4" })) : (jsxRuntime.jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (firestoreConfig.showStreamingSelector ?? config.showStreamingSelector) && (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs(Tooltip, { children: [jsxRuntime.jsx(TooltipTrigger, { asChild: true, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-1", children: [jsxRuntime.jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsxs(SelectContent, { className: "z-50", children: [jsxRuntime.jsx(SelectItem, { value: "0", children: "Always Stream" }), jsxRuntime.jsx(SelectItem, { value: "300", children: "300 chars" }), jsxRuntime.jsx(SelectItem, { value: "500", children: "500 chars" }), jsxRuntime.jsx(SelectItem, { value: "1000", children: "1K chars" }), jsxRuntime.jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsxRuntime.jsx(SelectItem, { value: "2000", children: "2K chars" }), jsxRuntime.jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsxRuntime.jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsxRuntime.jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxRuntime.jsxs("div", { className: "space-y-2", children: [jsxRuntime.jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsxRuntime.jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsxRuntime.jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxRuntime.jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), jsxRuntime.jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsxRuntime.jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] })] })] }) }), jsxRuntime.jsxs(CardContent, { className: "flex-1 overflow-y-auto p-4 space-y-4", children: [messages.length === 0 ? (jsxRuntime.jsxs("div", { className: "flex flex-col items-center justify-center flex-1 text-center space-y-4", children: [config.welcomeMessage && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-8 h-8 text-blue-500" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" }), jsxRuntime.jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage })] })] })), config.enableQuestions && (jsxRuntime.jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: questionsToUse, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions }))] })) : (jsxRuntime.jsxs("div", { className: "space-y-4 break-words", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
                                 const isLastMessage = index === messages.length - 1;
                                 const shouldShowStreaming = isStreaming && isLastMessage && streamingMessage;
                                 return (jsxRuntime.jsx(MessageBubble, { message: message, streamingContent: shouldShowStreaming ? streamingMessage : undefined, debugStreaming: config.debugStreaming }, message.id));
@@ -37423,6 +37461,26 @@ class FirebaseChatProvider extends BaseChatProvider {
             console.error('Error fetching questions from Firestore:', error);
             // Return empty array to fall back to FALLBACK_QUESTIONS
             return [];
+        }
+    }
+    /**
+     * Get chatbot configuration from Firestore config/app document
+     */
+    async getChatbotConfig() {
+        try {
+            // Import Firebase dynamically to avoid bundling issues
+            const { doc, getDoc, getFirestore } = await import('firebase/firestore');
+            const db = getFirestore();
+            const configRef = doc(db, 'config', 'app');
+            const configSnap = await getDoc(configRef);
+            if (configSnap.exists()) {
+                return configSnap.data();
+            }
+            return {};
+        }
+        catch (error) {
+            console.error('Error fetching chatbot config from Firestore:', error);
+            return {};
         }
     }
     /**

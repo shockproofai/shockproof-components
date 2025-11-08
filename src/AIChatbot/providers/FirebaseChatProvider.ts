@@ -231,6 +231,29 @@ export class FirebaseChatProvider extends BaseChatProvider {
   }
 
   /**
+   * Get chatbot configuration from Firestore config/app document
+   */
+  async getChatbotConfig(): Promise<Record<string, any>> {
+    try {
+      // Import Firebase dynamically to avoid bundling issues
+      const { doc, getDoc, getFirestore } = await import('firebase/firestore');
+      
+      const db = getFirestore();
+      const configRef = doc(db, 'config', 'app');
+      const configSnap = await getDoc(configRef);
+      
+      if (configSnap.exists()) {
+        return configSnap.data();
+      }
+      
+      return {};
+    } catch (error) {
+      console.error('Error fetching chatbot config from Firestore:', error);
+      return {};
+    }
+  }
+
+  /**
    * Check if user is authenticated (if required)
    */
   private checkAuth(): void {
