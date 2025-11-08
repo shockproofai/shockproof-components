@@ -183,13 +183,22 @@ export { FALLBACK_QUESTIONS };
 export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
   onQuestionClick,
   isLoading,
-  questions = [],
+  questions, // No default - undefined means loading
   maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
   fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
 }) => {
   const [showMore, setShowMore] = useState(false);
 
   const { initialQuestions, additionalQuestions, questionsLoaded } = useMemo(() => {
+    // If questions is undefined, we're still loading - don't show anything
+    if (questions === undefined) {
+      return {
+        initialQuestions: [],
+        additionalQuestions: [],
+        questionsLoaded: false,
+      };
+    }
+    
     const questionsToUse = questions.length > 0 ? questions : fallbackQuestions;
     const sortedQuestions = [...questionsToUse].sort((a, b) => a.priority - b.priority);
     const initial = sortedQuestions.slice(0, maxInitialQuestions);
