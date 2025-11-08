@@ -81,6 +81,7 @@ export function AIChatbot({
   // Load questions from provider if not provided in config
   const [loadedQuestions, setLoadedQuestions] = useState<any[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
   // Load chatbot config from provider (Firestore config/app)
   const [firestoreConfig, setFirestoreConfig] = useState<Record<string, any>>({});
@@ -117,16 +118,20 @@ export function AIChatbot({
           console.log('[AIChatbot] Loaded questions from provider:', questions.length, 'questions');
           setLoadedQuestions(questions);
           setQuestionsLoading(false);
+          setQuestionsLoaded(true);
         })
         .catch((error) => {
           console.error('Failed to load questions from provider:', error);
           setQuestionsLoading(false);
+          setQuestionsLoaded(true); // Still mark as loaded even on error
         });
     }
   }, [config.questions, provider, questionsLoading, loadedQuestions.length]);
 
   // Use loaded questions if config doesn't provide them
-  const questionsToUse = config.questions || loadedQuestions;
+  // If provider has getQuestions and we're waiting for them to load, return undefined to prevent fallback flash
+  const questionsToUse = config.questions 
+    || (provider.getQuestions && !questionsLoaded ? undefined : loadedQuestions);
 
   // Sync streaming threshold with config changes
   React.useEffect(() => {

@@ -34106,7 +34106,7 @@ fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
     if (!questionsLoaded || (initialQuestions.length === 0 && additionalQuestions.length === 0)) {
         return (jsxRuntime.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl animate-pulse", children: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (jsxRuntime.jsx("div", { className: "h-12 bg-gray-200 rounded-md border" }, i))) }));
     }
-    return (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs("div", { className: "max-w-4xl", children: [jsxRuntime.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-3", children: initialQuestions.map((question, index) => renderQuestion(question, index)) }), additionalQuestions.length > 0 && (jsxRuntime.jsx("div", { className: "mt-4", children: jsxRuntime.jsxs(Button, { variant: "ghost", size: "sm", onClick: handleToggleMore, disabled: isLoading, className: "w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50", children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 mr-2" }), showMore ? (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: ["Show fewer questions", jsxRuntime.jsx(ChevronUp, { className: "w-3 h-3 ml-2" })] })) : (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: ["Show more questions (", additionalQuestions.length, ")", jsxRuntime.jsx(ChevronDown, { className: "w-3 h-3 ml-2" })] }))] }) })), showMore && additionalQuestions.length > 0 && (jsxRuntime.jsx("div", { className: "mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200", children: additionalQuestions.map((question, index) => renderQuestion(question, index + initialQuestions.length)) })), questionsLoaded && (jsxRuntime.jsx("div", { className: "mt-4 text-center", children: jsxRuntime.jsxs("p", { className: "text-xs text-gray-400", children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 inline mr-1" }), "Questions generated from your documents"] }) }))] }) }));
+    return (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs("div", { className: "max-w-4xl", children: [jsxRuntime.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-3", children: initialQuestions.map((question, index) => renderQuestion(question, index)) }), additionalQuestions.length > 0 && (jsxRuntime.jsx("div", { className: "mt-4", children: jsxRuntime.jsxs(Button, { variant: "ghost", size: "sm", onClick: handleToggleMore, disabled: isLoading, className: "w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50", children: [jsxRuntime.jsx(Sparkles, { className: "w-3 h-3 mr-2" }), showMore ? (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: ["Show fewer questions", jsxRuntime.jsx(ChevronUp, { className: "w-3 h-3 ml-2" })] })) : (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: ["Show more questions (", additionalQuestions.length, ")", jsxRuntime.jsx(ChevronDown, { className: "w-3 h-3 ml-2" })] }))] }) })), showMore && additionalQuestions.length > 0 && (jsxRuntime.jsx("div", { className: "mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200", children: additionalQuestions.map((question, index) => renderQuestion(question, index + initialQuestions.length)) }))] }) }));
 };
 
 // packages/core/number/src/number.ts
@@ -36510,6 +36510,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     // Load questions from provider if not provided in config
     const [loadedQuestions, setLoadedQuestions] = React.useState([]);
     const [questionsLoading, setQuestionsLoading] = React.useState(false);
+    const [questionsLoaded, setQuestionsLoaded] = React.useState(false);
     // Load chatbot config from provider (Firestore config/app)
     const [firestoreConfig, setFirestoreConfig] = React.useState({});
     const [configLoading, setConfigLoading] = React.useState(false);
@@ -36543,15 +36544,19 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                 console.log('[AIChatbot] Loaded questions from provider:', questions.length, 'questions');
                 setLoadedQuestions(questions);
                 setQuestionsLoading(false);
+                setQuestionsLoaded(true);
             })
                 .catch((error) => {
                 console.error('Failed to load questions from provider:', error);
                 setQuestionsLoading(false);
+                setQuestionsLoaded(true); // Still mark as loaded even on error
             });
         }
     }, [config.questions, provider, questionsLoading, loadedQuestions.length]);
     // Use loaded questions if config doesn't provide them
-    const questionsToUse = config.questions || loadedQuestions;
+    // If provider has getQuestions and we're waiting for them to load, return undefined to prevent fallback flash
+    const questionsToUse = config.questions
+        || (provider.getQuestions && !questionsLoaded ? undefined : loadedQuestions);
     // Sync streaming threshold with config changes
     React.useEffect(() => {
         if (config.streamingThreshold !== undefined && config.streamingThreshold !== streamingThreshold) {

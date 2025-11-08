@@ -324,15 +324,6 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
           </div>
         )}
 
-        {/* Metadata Footer */}
-        {questionsLoaded && (
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-400">
-              <Sparkles className="w-3 h-3 inline mr-1" />
-              Questions generated from your documents
-            </p>
-          </div>
-        )}
       </div>
     </TooltipProvider>
   );
