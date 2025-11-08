@@ -45,12 +45,6 @@ export interface ChatbotConfig {
    * Enable dynamic questions feature (optional, default: true)
    */
   enableDynamicQuestions?: boolean;
-
-  /**
-   * Maximum number of dynamic questions to show (optional, default: 3)
-   */
-  maxDynamicQuestions?: number;
-
   /**
    * Maximum number of questions to show initially (optional, default: 8)
    * Additional questions can be revealed with "Show More" button

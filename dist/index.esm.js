@@ -36973,9 +36973,7 @@ const defaultChatbotConfig = {
     availableAgents: ['askRex'],
     maxResults: 5,
     streamingThreshold: 300,
-    enableDynamicQuestions: true,
-    maxDynamicQuestions: 3,
-    maxInitialQuestions: 8,
+    enableDynamicQuestions: true, maxInitialQuestions: 8,
     showTimingInfo: false,
     placeholder: 'Ask me anything about the course...',
 };
@@ -36995,9 +36993,7 @@ function mergeWithDefaults(userConfig) {
         availableAgents: userConfig.availableAgents ?? defaultChatbotConfig.availableAgents,
         maxResults: userConfig.maxResults ?? defaultChatbotConfig.maxResults,
         streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold,
-        enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions,
-        maxDynamicQuestions: userConfig.maxDynamicQuestions ?? defaultChatbotConfig.maxDynamicQuestions,
-        maxInitialQuestions: userConfig.maxInitialQuestions ?? defaultChatbotConfig.maxInitialQuestions,
+        enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions, maxInitialQuestions: userConfig.maxInitialQuestions ?? defaultChatbotConfig.maxInitialQuestions,
         showTimingInfo: userConfig.showTimingInfo ?? defaultChatbotConfig.showTimingInfo,
         placeholder: userConfig.placeholder ?? defaultChatbotConfig.placeholder,
     };
@@ -37145,8 +37141,10 @@ let FirebaseChatProvider$1 = class FirebaseChatProvider {
                 const j = Math.floor(Math.random() * (i + 1));
                 [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
             }
-            console.log(`[Chatbot Provider] Loaded and shuffled ${allQuestions.length} questions from Firestore`);
-            return allQuestions;
+            // Limit to 25 total questions (8 initial + 17 more via Show More)
+            const limitedQuestions = allQuestions.slice(0, 25);
+            console.log(`[Chatbot Provider] Loaded and shuffled ${allQuestions.length} questions, returning ${limitedQuestions.length}`);
+            return limitedQuestions;
         }
         catch (error) {
             console.error('[Chatbot Provider] Error loading questions:', error);
@@ -37284,9 +37282,7 @@ function Chatbot(props) {
         config.enableDynamicQuestions,
         config.showTimingInfo,
         config.placeholder,
-        config.agentName,
-        config.maxDynamicQuestions,
-        config.maxInitialQuestions,
+        config.agentName, config.maxInitialQuestions,
         config.title,
         config.subtitle,
     ]);

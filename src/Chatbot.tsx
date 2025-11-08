@@ -178,8 +178,10 @@ class FirebaseChatProvider implements ChatProvider {
         [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
       }
 
-      console.log(`[Chatbot Provider] Loaded and shuffled ${allQuestions.length} questions from Firestore`);
-      return allQuestions;
+      // Limit to 25 total questions (8 initial + 17 more via Show More)
+      const limitedQuestions = allQuestions.slice(0, 25);
+      console.log(`[Chatbot Provider] Loaded and shuffled ${allQuestions.length} questions, returning ${limitedQuestions.length}`);
+      return limitedQuestions;
     } catch (error) {
       console.error('[Chatbot Provider] Error loading questions:', error);
       return [];
@@ -357,9 +359,7 @@ export function Chatbot(props: ChatbotConfig) {
     config.enableDynamicQuestions,
     config.showTimingInfo,
     config.placeholder,
-    config.agentName,
-    config.maxDynamicQuestions,
-    config.maxInitialQuestions,
+    config.agentName,    config.maxInitialQuestions,
     config.title,
     config.subtitle,
   ]);
