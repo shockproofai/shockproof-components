@@ -122,7 +122,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       d="M4 12a8 8 0 018-8v8z"
                     ></path>
                   </svg>
-                  <span className="text-sm text-gray-600">AI is thinking...</span>
+                  <span className="text-sm text-gray-600">Thinking...</span>
                 </div>
               )
             ) : (
