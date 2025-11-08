@@ -1,5 +1,4 @@
 node_modules/
-dist/
 
 # Backup files
 *.backup

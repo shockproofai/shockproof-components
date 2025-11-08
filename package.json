@@ -26,9 +26,6 @@
   },
   "files": [
     "dist",
-    "src",
-    "rollup.config.js",
-    "tsconfig.json",
     "README.md"
   ],
   "scripts": {
@@ -37,8 +34,7 @@
     "dev": "rollup -c -w",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
-    "clean": "rimraf dist",
-    "postinstall": "npm run build"
+    "clean": "rimraf dist"
   },
   "repository": {
     "type": "git",
