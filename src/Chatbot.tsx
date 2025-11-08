@@ -11,6 +11,7 @@ import { ChatMessage as SDKChatMessage, RAGResponse, TopicContext } from './type
 class FirebaseChatProvider implements ChatProvider {
   name = 'firebase';
   private chatService: ChatService;
+  private firebaseApp: any;
   private selectedAgent: string = 'askRex';
   private maxResults: number = 5;
   private streamingThreshold: number = 300;
@@ -18,11 +19,13 @@ class FirebaseChatProvider implements ChatProvider {
 
   constructor(chatService: ChatService, config: {
     agentName?: string;
+    firebaseApp: any;
     maxResults?: number;
     streamingThreshold?: number;
     availableAgents?: string[];
   }) {
     this.chatService = chatService;
+    this.firebaseApp = config.firebaseApp;
     this.availableAgents = config.availableAgents || ['askRex'];
     this.selectedAgent = config.agentName || this.availableAgents[0];
     this.maxResults = config.maxResults || 5;
@@ -95,6 +98,92 @@ class FirebaseChatProvider implements ChatProvider {
     this.streamingThreshold = threshold;
     console.log(`✅ [Chatbot] Streaming threshold changed to: ${threshold}`);
     this.saveStreamingThresholdPreference(threshold);
+  }
+
+
+  async getChatbotConfig(): Promise<Record<string, any>> {
+    try {
+      console.log('[Chatbot Provider] Loading config from Firestore...');
+      
+      const { getFirestore, doc, getDoc } = await import('firebase/firestore');
+      const db = getFirestore(this.firebaseApp);
+      
+      const configDoc = await getDoc(doc(db, 'config', 'app'));
+      
+      if (configDoc.exists()) {
+        const data = configDoc.data();
+        console.log('[Chatbot Provider] Config loaded from Firestore:', data);
+        return {
+          showAgentSelector: data.showAgentSelector,
+          showStreamingSelector: data.showStreamingSelector,
+        };
+      } else {
+        console.log('[Chatbot Provider] No config/app document found in Firestore');
+        return {};
+      }
+    } catch (error) {
+      console.error('[Chatbot Provider] Error loading config:', error);
+      return {};
+    }
+  }
+
+  async getQuestions(): Promise<Array<{ id: string; question: string; priority: number; topicDescription?: string; contextHints?: string[] }>> {
+    try {
+      console.log('[Chatbot Provider] Loading questions from Firestore sources collection...');
+      
+      const { getFirestore, collection, getDocs } = await import('firebase/firestore');
+      const db = getFirestore(this.firebaseApp);
+      
+      const sourcesSnapshot = await getDocs(collection(db, 'sources'));
+      
+      if (sourcesSnapshot.empty) {
+        console.log('[Chatbot Provider] No documents found in sources collection');
+        return [];
+      }
+
+      const allQuestions: Array<{ id: string; question: string; priority: number; topicDescription?: string; contextHints?: string[] }> = [];
+      let questionId = 0;
+      
+      sourcesSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.questions && Array.isArray(data.questions)) {
+          data.questions.forEach((q: any) => {
+            questionId++;
+            if (typeof q === 'string') {
+              allQuestions.push({ 
+                id: `q${questionId}`,
+                question: q,
+                priority: 1
+              });
+            } else if (q && typeof q === 'object' && q.question) {
+              allQuestions.push({
+                id: `q${questionId}`,
+                question: q.question,
+                topicDescription: q.tooltip || q.topicDescription,
+                contextHints: q.contextHints,
+                priority: q.priority || 1
+              });
+            }
+          });
+        }
+      });
+
+      if (allQuestions.length === 0) {
+        console.log('[Chatbot Provider] No questions found in any source documents');
+        return [];
+      }
+
+      for (let i = allQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+      }
+
+      console.log(`[Chatbot Provider] Loaded and shuffled ${allQuestions.length} questions from Firestore`);
+      return allQuestions;
+    } catch (error) {
+      console.error('[Chatbot Provider] Error loading questions:', error);
+      return [];
+    }
   }
 
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {
@@ -242,6 +331,7 @@ export function Chatbot(props: ChatbotConfig) {
   const provider = useMemo(() => {
     return new FirebaseChatProvider(chatService, {
       agentName: config.agentName,
+      firebaseApp: config.firebaseApp,
       availableAgents: config.availableAgents,
       maxResults: config.maxResults,
       streamingThreshold: config.streamingThreshold,
