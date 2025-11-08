@@ -52,12 +52,6 @@ export interface ChatbotConfig {
   maxDynamicQuestions?: number;
 
   /**
-   * Maximum number of questions to show initially (optional, default: 8)
-   * Additional questions can be revealed with "Show More" button
-   */
-  maxInitialQuestions?: number;
-
-  /**
    * Show timing information for debugging (optional, default: false)
    */
   showTimingInfo?: boolean;

@@ -133,20 +133,6 @@ export class FirebaseChatProvider extends BaseChatProvider {
   }
   
   /**
-   * Get questions from question service
-   */
-  async getQuestions(): Promise<ChatQuestion[]> {
-    try {
-      // This would integrate with existing QuestionService
-      // For now, return empty array - will be implemented when we extract components
-      return [];
-      
-    } catch (error) {
-      this.handleError(error, 'getQuestions');
-    }
-  }
-  
-  /**
    * Switch between available agents
    */
   switchAgent(agentName: string): void {
@@ -192,6 +178,58 @@ export class FirebaseChatProvider extends BaseChatProvider {
     };
   }
   
+  /**
+   * Get questions from Firestore sources collection
+   * Randomly selects questions from documents
+   */
+  async getQuestions(): Promise<ChatQuestion[]> {
+    try {
+      // Import Firebase dynamically to avoid bundling issues
+      const { collection, getDocs, getFirestore } = await import('firebase/firestore');
+      
+      const db = getFirestore();
+      const sourcesRef = collection(db, 'sources');
+      const snapshot = await getDocs(sourcesRef);
+      
+      const allQuestions: ChatQuestion[] = [];
+      let questionId = 1;
+      
+      // Extract questions from each document
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        
+        // Check if document has questions array
+        if (data.questions && Array.isArray(data.questions)) {
+          data.questions.forEach((q: any) => {
+            // Support both string and object formats
+            const questionText = typeof q === 'string' ? q : q.question || q.text;
+            
+            if (questionText) {
+              allQuestions.push({
+                id: `q-${questionId++}`,
+                question: questionText,
+                // Don't include topicDescription - we don't want categories
+                contextHints: q.contextHints || [],
+                priority: q.priority || 1,
+              });
+            }
+          });
+        }
+      });
+      
+      // Randomly shuffle questions
+      const shuffled = allQuestions.sort(() => Math.random() - 0.5);
+      
+      // Return random selection (configurable, default to 25)
+      const maxQuestions = this.config.maxInitialQuestions || 25;
+      return shuffled.slice(0, maxQuestions);
+    } catch (error) {
+      console.error('Error fetching questions from Firestore:', error);
+      // Return empty array to fall back to FALLBACK_QUESTIONS
+      return [];
+    }
+  }
+
   /**
    * Check if user is authenticated (if required)
    */

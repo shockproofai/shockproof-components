@@ -85,6 +85,8 @@ export interface ChatbotConfig {
   title?: string;
   subtitle?: string;
   showAgentSwitcher?: boolean;
+  showAgentSelector?: boolean; // Alias for showAgentSwitcher
+  showStreamingSelector?: boolean;
   showTimingInfo?: boolean;
   debugStreaming?: boolean;
   

@@ -259,7 +259,7 @@ export function Chatbot(props: ChatbotConfig) {
     showAgentSwitcher: true,
     showTimingInfo: config.showTimingInfo,
     defaultAgent: config.agentName,
-    maxInitialQuestions: config.maxInitialQuestions,
+    maxInitialQuestions: config.maxDynamicQuestions,
     title: config.title,
     subtitle: config.subtitle,
   }), [
@@ -269,7 +269,6 @@ export function Chatbot(props: ChatbotConfig) {
     config.placeholder,
     config.agentName,
     config.maxDynamicQuestions,
-    config.maxInitialQuestions,
     config.title,
     config.subtitle,
   ]);

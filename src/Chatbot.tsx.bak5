@@ -97,8 +97,6 @@ class FirebaseChatProvider implements ChatProvider {
     this.saveStreamingThresholdPreference(threshold);
   }
 
-  }
-
   private convertTopicContext(context?: ChatContext): TopicContext | undefined {
     if (!context?.topicContext) return undefined;
     return {
@@ -261,7 +259,7 @@ export function Chatbot(props: ChatbotConfig) {
     showAgentSwitcher: true,
     showTimingInfo: config.showTimingInfo,
     defaultAgent: config.agentName,
-    maxInitialQuestions: config.maxDynamicQuestions,
+    maxInitialQuestions: config.maxInitialQuestions,
     title: config.title,
     subtitle: config.subtitle,
   }), [

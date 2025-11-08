@@ -34,7 +34,6 @@ export function mergeWithDefaults(userConfig: ChatbotConfig): Required<Omit<Chat
     streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold!,
     enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions!,
     maxDynamicQuestions: userConfig.maxDynamicQuestions ?? defaultChatbotConfig.maxDynamicQuestions!,
-    maxInitialQuestions: userConfig.maxInitialQuestions ?? defaultChatbotConfig.maxInitialQuestions!,
     showTimingInfo: userConfig.showTimingInfo ?? defaultChatbotConfig.showTimingInfo!,
     placeholder: userConfig.placeholder ?? defaultChatbotConfig.placeholder!,
   };

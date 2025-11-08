@@ -171,21 +171,6 @@ export function AIChatbot({
               <div>
                 <CardTitle className="flex items-center gap-2">
                   {config.title || "Ask Rex"}
-                  <Badge variant="secondary" className="text-xs">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    AI-Powered
-                  </Badge>
-                  <Badge variant="default" className="text-xs">
-                    {selectedAgent === "askRex" ? (
-                      <>
-                        <Bot className="w-3 h-3 mr-1" /> Ask Rex
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3 h-3 mr-1" /> Ask Rex Test
-                      </>
-                    )}
-                  </Badge>
                 </CardTitle>
                 {config.subtitle && (
                   <p className="text-sm text-gray-600">{config.subtitle}</p>
@@ -194,7 +179,7 @@ export function AIChatbot({
             </div>
             <div className="flex items-center gap-2">
               {/* Agent Selector */}
-              {config.showAgentSwitcher && provider.getAvailableAgents && (
+              {(config.showAgentSwitcher || config.showAgentSelector) && provider.getAvailableAgents && (
                 <Select value={selectedAgent || ''} onValueChange={handleAgentChange}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
@@ -217,7 +202,7 @@ export function AIChatbot({
               )}
 
               {/* Streaming Threshold */}
-              {config.enableStreaming && (
+              {config.enableStreaming && config.showStreamingSelector && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
