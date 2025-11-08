@@ -89,9 +89,11 @@ export function AIChatbot({
   // Load config from provider if available
   React.useEffect(() => {
     if (provider.getChatbotConfig && !configLoading && Object.keys(firestoreConfig).length === 0) {
+      console.log('[AIChatbot] Loading config from provider...');
       setConfigLoading(true);
       provider.getChatbotConfig()
         .then((cfg) => {
+          console.log('[AIChatbot] Loaded Firestore config:', cfg);
           setFirestoreConfig(cfg);
           setConfigLoading(false);
         })
@@ -105,9 +107,11 @@ export function AIChatbot({
   React.useEffect(() => {
     // Only load from provider if no questions in config and provider has getQuestions
     if (!config.questions && provider.getQuestions && !questionsLoading && loadedQuestions.length === 0) {
+      console.log('[AIChatbot] Loading questions from provider...');
       setQuestionsLoading(true);
       provider.getQuestions()
         .then((questions) => {
+          console.log('[AIChatbot] Loaded questions from provider:', questions.length, 'questions');
           setLoadedQuestions(questions);
           setQuestionsLoading(false);
         })
@@ -222,13 +226,22 @@ export function AIChatbot({
             </div>
             <div className="flex items-center gap-2">
               {/* Agent Selector */}
-              {(firestoreConfig.showAgentSelector ?? config.showAgentSwitcher ?? config.showAgentSelector) && provider.getAvailableAgents && (
+              {(() => {
+                const shouldShow = (firestoreConfig.showAgentSelector ?? config.showAgentSwitcher ?? config.showAgentSelector) && provider.getAvailableAgents;
+                console.log('[AIChatbot] Agent selector should show:', shouldShow, {
+                  firestoreShowAgent: firestoreConfig.showAgentSelector,
+                  configShowSwitcher: config.showAgentSwitcher,
+                  configShowAgent: config.showAgentSelector,
+                  hasGetAvailableAgents: !!provider.getAvailableAgents
+                });
+                return shouldShow;
+              })() && (
                 <Select value={selectedAgent || ''} onValueChange={handleAgentChange}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="z-50">
-                    {provider.getAvailableAgents().map((agent) => (
+                    {provider.getAvailableAgents?.().map((agent) => (
                       <SelectItem key={agent} value={agent}>
                         <div className="flex items-center gap-2">
                           {agent === 'askRex' ? (
