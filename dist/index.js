@@ -36515,6 +36515,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     // Load chatbot config from provider (Firestore config/app)
     const [firestoreConfig, setFirestoreConfig] = React.useState({});
     const [configLoading, setConfigLoading] = React.useState(false);
+    const [configLoaded, setConfigLoaded] = React.useState(false);
     // Load config from provider if available
     React.useEffect(() => {
         if (provider.getChatbotConfig && !configLoading && Object.keys(firestoreConfig).length === 0) {
@@ -36525,10 +36526,12 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                 console.log('[AIChatbot] Loaded Firestore config:', cfg);
                 setFirestoreConfig(cfg);
                 setConfigLoading(false);
+                setConfigLoaded(true);
             })
                 .catch((error) => {
                 console.error('Failed to load chatbot config from provider:', error);
                 setConfigLoading(false);
+                setConfigLoaded(true); // Still mark as loaded even on error
             });
         }
     }, [provider, configLoading, firestoreConfig]);
@@ -36615,8 +36618,13 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         startNewSession();
     };
     return (jsxRuntime.jsxs("div", { className: `flex flex-col h-full max-h-screen ${className}`, style: style, "data-theme": config.theme || 'auto', children: [jsxRuntime.jsx(CardHeader, { className: "border-b bg-gradient-to-r from-blue-50 to-purple-50", children: jsxRuntime.jsxs("div", { className: "flex items-center justify-between", children: [jsxRuntime.jsxs("div", { className: "flex items-center gap-3", children: [jsxRuntime.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-5 h-5 text-white" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx(CardTitle, { className: "flex items-center gap-2", children: config.title || "Ask Rex" }), config.subtitle && (jsxRuntime.jsx("p", { className: "text-sm text-gray-600", children: config.subtitle }))] })] }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [(() => {
+                                    // If provider has getChatbotConfig, wait for it to load before showing selector
+                                    if (provider.getChatbotConfig && !configLoaded) {
+                                        return false; // Don't show until config loads
+                                    }
                                     const shouldShow = (firestoreConfig.showAgentSelector ?? config.showAgentSwitcher ?? config.showAgentSelector) && provider.getAvailableAgents;
                                     console.log('[AIChatbot] Agent selector should show:', shouldShow, {
+                                        configLoaded,
                                         firestoreShowAgent: firestoreConfig.showAgentSelector,
                                         configShowSwitcher: config.showAgentSwitcher,
                                         configShowAgent: config.showAgentSelector,

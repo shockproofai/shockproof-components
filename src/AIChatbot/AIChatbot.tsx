@@ -85,6 +85,7 @@ export function AIChatbot({
   // Load chatbot config from provider (Firestore config/app)
   const [firestoreConfig, setFirestoreConfig] = useState<Record<string, any>>({});
   const [configLoading, setConfigLoading] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   // Load config from provider if available
   React.useEffect(() => {
@@ -96,10 +97,12 @@ export function AIChatbot({
           console.log('[AIChatbot] Loaded Firestore config:', cfg);
           setFirestoreConfig(cfg);
           setConfigLoading(false);
+          setConfigLoaded(true);
         })
         .catch((error) => {
           console.error('Failed to load chatbot config from provider:', error);
           setConfigLoading(false);
+          setConfigLoaded(true); // Still mark as loaded even on error
         });
     }
   }, [provider, configLoading, firestoreConfig]);
@@ -227,8 +230,14 @@ export function AIChatbot({
             <div className="flex items-center gap-2">
               {/* Agent Selector */}
               {(() => {
+                // If provider has getChatbotConfig, wait for it to load before showing selector
+                if (provider.getChatbotConfig && !configLoaded) {
+                  return false; // Don't show until config loads
+                }
+                
                 const shouldShow = (firestoreConfig.showAgentSelector ?? config.showAgentSwitcher ?? config.showAgentSelector) && provider.getAvailableAgents;
                 console.log('[AIChatbot] Agent selector should show:', shouldShow, {
+                  configLoaded,
                   firestoreShowAgent: firestoreConfig.showAgentSelector,
                   configShowSwitcher: config.showAgentSwitcher,
                   configShowAgent: config.showAgentSelector,
