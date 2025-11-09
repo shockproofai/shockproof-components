@@ -1,294 +1,310 @@
 # @shockproofai/shockproof-components
 
-A comprehensive React components library for ShockProof AI applications. This library provides reusable, production-ready components with Firebase integration and TypeScript support.
+A comprehensive React components library for ShockProof AI applications. This repository contains reusable UI components with tight Firebase integration, an AI Chatbot, and an Auth component that can be used across ShockProof AI apps.
 
-## 🚀 Components
+## Contents
 
-### 🤖 AI Chatbot Component
-- **Streaming responses** with real-time content display
-- **Multi-agent support** with agent switching
-- **Performance metrics** with timing and token usage
-- **Dynamic questions** with contextual suggestions
-- **Firebase integration** with authentication
-- **Fully customizable** UI and behavior
+- `Auth` — App-level authentication wrapper and hooks
+- `Chatbot` — Simple opinionated chatbot wrapper backed by Firebase
+- `AIChatbot` — Advanced, lower level chatbot for custom providers
+- `dist/` — Build artifacts (committed so apps can depend on Git tags)
+- `.githooks/` — Native git hooks (pre-commit builds `dist/`)
+- `release.sh` — Simple release helper (version bump, build, tag, push)
 
-### 🔮 Future Components
-- Data Tables & Grids
-- Form Builder & Validation
-- Charts & Visualizations
-- Navigation & Layout
-- Authentication Components
+---
 
-## 📦 Installation
+## Installation
 
-### Git Dependency (Recommended for internal use)
+Install from GitHub (recommended for internal apps):
 
 ```bash
-npm install git+https://github.com/shockproofai/shockproof-components.git#v1.0.0
+npm install github:shockproofai/shockproof-components#v2.1.2
 ```
 
-### Peer Dependencies
+Install peer deps:
 
 ```bash
 npm install firebase react react-dom
 ```
 
-## 🚀 Quick Start
+---
 
-### AI Chatbot
+## Auth component
+
+Use the `Auth` wrapper to centralize authentication for your app. It supports silent anonymous sign-in (useful when Firestore rules require `request.auth != null`), Google OAuth, and an email-link (passwordless) flow with an optional custom email sender.
+
+Basic usage:
 
 ```tsx
-import React from 'react';
-import { AIChatbot, createFirebaseProvider } from '@shockproofai/shockproof-components';
-import '@shockproofai/shockproof-components/styles';
+import { Auth } from '@shockproofai/shockproof-components';
+import { app } from './lib/firebase';
 
 function App() {
-  const provider = React.useMemo(() => {
-    return createFirebaseProvider({
-      chatService: yourChatService,
-      agentOptions: ['askRex', 'askRexTest'],
-      authRequired: true
-    });
-  }, []);
-
-  const config = {
-    title: "Ask Rex",
-    subtitle: "AI Assistant for your domain",
-    enableStreaming: true,
-    enableSources: true,
-    enableQuestions: true,
-    showTimingInfo: true,
-    theme: 'auto' as const
-  };
-
   return (
-    <div style={{ height: '100vh' }}>
-      <AIChatbot provider={provider} config={config} />
-    </div>
+    <Auth firebaseApp={app} autoSignInAnonymously={true}>
+      <YourAppContent />
+    </Auth>
   );
 }
 ```
 
-## 📖 Component Documentation
+AuthConfig (options):
 
-### AIChatbot
+- `firebaseApp: FirebaseApp` (required) — your initialized Firebase app
+- `autoSignInAnonymously?: boolean` — if true, calls `signInAnonymously()` on mount when no user exists (default: false)
+- `enableGoogle?: boolean` — show Google sign-in button (default: true)
+- `enableEmailLink?: boolean` — enable email-link sign-in UI (default: false)
+- `onSendEmailLink?: (email: string) => Promise<void>` — optional override to send the magic link (if omitted the component will call Firebase's built-in `sendSignInLinkToEmail`)
 
-The AI Chatbot component provides a complete chat interface with streaming, sources, and performance metrics.
+Hook and API:
 
-#### Props
+- `useAuth()` — returns `{ user, loading, isAuthenticated, signInWithGoogle(), signOut(), signInAnonymously() }`
+
+When you wrap your app with `Auth`, the children will be hidden until the auth state stabilizes (loading state shown). This centralizes auth and makes it trivial to change auth requirements later (for example require Google-only or show an explicit sign-in page).
+
+---
+
+## Chatbot component
+
+`Chatbot` is the opinionated, easy-to-drop-in chatbot for apps that use the shared Firebase backend. It uses a provider internally that reads configuration and suggested questions from Firestore.
+
+Example:
 
 ```tsx
-interface AIChatbotProps {
-  provider: ChatProvider;
-  config: ChatbotConfig;
-  className?: string;
-  style?: React.CSSProperties;
-  onMessageSent?: (message: string) => void;
-  onMessageReceived?: (response: ChatResponse) => void;
-  onError?: (error: Error) => void;
+import { Chatbot } from '@shockproofai/shockproof-components';
+import { app } from './lib/firebase';
+
+<Chatbot
+  firebaseApp={app}
+  agentName="askRex"
+  availableAgents={["askRex", "askRexTest"]}
+  streamingThreshold={300}
+  enableDynamicQuestions={true}
+  showSources={true}
+  showTimingInfo={true}
+  placeholder="Ask me anything..."
+  maxInitialQuestions={8}
+/>
+```
+
+ChatbotConfig (options):
+
+- `firebaseApp: FirebaseApp` (required)
+- `agentName?: string` — default agent to use (default: `askRex`)
+- `availableAgents?: string[]` — list of agent names user can switch to
+- `streamingThreshold?: number` — token length threshold to enable streaming (default: 300)
+- `enableDynamicQuestions?: boolean` — fetch suggested questions from Firestore (default: true)
+- `showSources?: boolean` — show document/source links in responses (default: true)
+- `showTimingInfo?: boolean` — display timing/token metrics (default: false)
+- `placeholder?: string` — input placeholder
+- `maxInitialQuestions?: number` — initial number of suggested questions shown (default: 8)
+
+Additionally the component respects remote config flags stored in Firestore under the `config/app` document:
+
+- `showAgentSelector: boolean` — whether to render the agent selector
+- `showStreamingSelector: boolean` — whether to render a streaming toggle
+
+These are read on mount so the UI matches the project's configuration.
+
+---
+
+## Where suggested questions come from (sources & RAG)
+
+Suggested questions and contextual data are pulled from a Firestore collection named `sources` (or a project-specific equivalent). Each document typically contains an array of question objects with the following shape:
+
+```json
+{
+  "id": "doc-id",
+  "questions": [
+    { "id": "q1", "question": "What is X?", "priority": 10, "topicDescription": "..." }
+  ]
 }
 ```
 
-#### Configuration
+The chatbot UI reads these questions, shuffles and limits them (default max: 25) and exposes the top `maxInitialQuestions` in the UI with a "Show more" control.
 
-```tsx
-interface ChatbotConfig {
-  // Core features
-  enableStreaming?: boolean;
-  streamingThreshold?: number;
-  enableSources?: boolean;
-  enableQuestions?: boolean;
-  showTimingInfo?: boolean;
-  showAgentSwitcher?: boolean;
-  
-  // UI customization
-  theme?: 'light' | 'dark' | 'auto';
-  title?: string;
-  subtitle?: string;
-  placeholder?: string;
-  welcomeMessage?: string;
-  
-  // Questions
-  questions?: ChatQuestion[];
-  maxInitialQuestions?: number;
-  
-  // Behavior
-  maxHistoryLength?: number;
-  retryEnabled?: boolean;
-  debugStreaming?: boolean;
-}
+### RAG (Retrieval-Augmented Generation) datastore
+
+The chatbot relies on a RAG datastore that provides semantic search over your documents. The typical workflow is:
+
+1. Upload source documents (PDFs, JSON, text files) to Cloud Storage
+2. Run the ingestion script to chunk, embed, and store vectors in Firestore (other file types like docx are currently NOT supported)
+3. The chatbot queries the vector store to retrieve relevant context
+
+#### Available Scripts
+
+**`scripts/gemini_rag_1536.py`** — Main RAG population script
+
+Processes documents from Cloud Storage, chunks them using LangChain's RecursiveCharacterTextSplitter, generates embeddings with Vertex AI's `gemini-embedding-001` model, and stores them in Firestore with vector search support.
+
+```bash
+# For cloud Firestore
+python3 scripts/gemini_rag_1536.py gs://your-bucket-name/path
+
+# For local emulator
+python3 scripts/gemini_rag_1536.py gs://your-bucket-name/path --firestore-mode emulator
 ```
 
-## 🔌 Provider Setup
+The script will:
+- Read PDFs from the specified Cloud Storage path
+- Split text into semantic chunks with configurable size
+- Generate 1536-dimensional embeddings
+- Store chunks and vectors in Firestore `embeddings` collection - vector dimensions are 1536
+- Store the entire source text of each file in the Firestore sources collection. These files also store related initial questions
+which are generated by the shockproof-cli script (see below)
 
-### Firebase Provider
+**`scripts/shockproof-cli.ts`** — Question generation utility
 
-```tsx
-import { createFirebaseProvider } from '@shockproofai/shockproof-components';
+Generates sample questions from existing Firestore documents to populate suggested questions.
 
-const provider = createFirebaseProvider({
-  chatService: yourChatService,    // Your existing ChatService
-  agentOptions: ['askRex'],        // Available agents
-  authRequired: true,              // Require authentication
-  enableQuestions: true,           // Enable dynamic questions
-  enableSources: true              // Enable source references
-});
+```bash
+# Generate 5 questions for all documents
+npx tsx scripts/shockproof-cli.ts generate-sample-questions 5
+
+# Generate 10 questions for a specific document
+npx tsx scripts/shockproof-cli.ts generate-sample-questions 10 "document-name.pdf"
 ```
 
-## 🎨 Import Patterns
+The CLI uses Genkit with `gemini-2.5-flash-lite` to generate conceptual questions based on document content and updates the `sources` collection with a `questions` array.
 
-### Full Library Import
+---
 
-```tsx
-import { AIChatbot, createFirebaseProvider } from '@shockproofai/shockproof-components';
+## Development
+
+```bash
+git clone https://github.com/shockproofai/shockproof-components.git
+cd shockproof-components
+npm install
 ```
 
-### Component-Specific Import
+Build once:
 
-```tsx
-import { AIChatbot } from '@shockproofai/shockproof-components/AIChatbot';
+```bash
+npm run build
 ```
 
-### Advanced Components
+Watch mode:
 
-```tsx
-import { 
-  MessageBubble, 
-  ChatInput, 
-  TimingInfo, 
-  useChatState 
-} from '@shockproofai/shockproof-components';
+```bash
+npm run build:watch
+npm run dev
 ```
 
-## 🏗️ Architecture
+### Pre-commit hook
 
-### Component Structure
+This repository uses native git hooks configured in `.githooks/pre-commit`. The hook runs `npm run build` and stages the `dist/` folder so `dist/` is always committed alongside source changes.
+
+The hook is configured via `git config core.hooksPath .githooks` during `postinstall`.
+
+---
+
+## Release process
+
+Use the release script to automate version bumps, build, commit, tag and push:
+
+```bash
+npm run release:patch  # patch release
+npm run release:minor  # minor release
+npm run release:major  # major release
+```
+
+The script will:
+
+1. Update `package.json` version
+2. Build the dist
+3. Commit `package.json` and `dist/`
+4. Create a git tag `vX.Y.Z`
+5. Push commit and tag to origin
+
+---
+
+## Project structure (high level)
 
 ```
 shockproof-components/
 ├── src/
-│   ├── AIChatbot/           # Complete chatbot component
-│   │   ├── AIChatbot.tsx    # Main component
-│   │   ├── components/      # Sub-components
-│   │   ├── hooks/           # Custom hooks
-│   │   ├── providers/       # Provider implementations
-│   │   └── types/           # TypeScript definitions
-│   ├── shared/              # Shared utilities
-│   │   ├── hooks/           # Common hooks
-│   │   ├── types/           # Common types
-│   │   └── utils/           # Utility functions
-│   └── styles/              # Global styles
+│   ├── Auth/
+│   ├── Chatbot.tsx
+│   ├── AIChatbot/
+│   └── index.ts
+├── dist/
+├── .githooks/
+├── release.sh
+├── rollup.config.js
+└── package.json
 ```
 
-### Firebase Integration
+## Roadmap
 
-- **Peer Dependencies**: Firebase managed by consuming apps
-- **Shared Project**: All apps use same Firebase configuration
-- **No Duplication**: Single Firebase SDK across applications
-- **Flexible Authentication**: Works with existing auth setup
+- (v2.2) Email-link auth UI, Auth modal mode, standardized standalone builds
+- (future) DataTable, FormBuilder, Charts
 
-## 📱 App Integration
+## Support
 
-### For Each ShockProof AI App
+Report issues at: https://github.com/shockproofai/shockproof-components/issues
 
+---
+
+_Proprietary — ShockProof AI internal use only_
+# @shockproofai/shockproof-components
+
+A comprehensive React components library for ShockProof AI applications.
+
+## Components
+
+### Auth Component (v2.1+)
+- Anonymous Authentication
+- Google OAuth
+- Email Link (Passwordless)
+
+### Chatbot Component (v2.0+)
+- Firestore integration
+- Streaming responses
+- Multi-agent support
+- Dynamic questions
+
+## Installation
+
+```bash
+npm install github:shockproofai/shockproof-components#v2.1.2
+```
+
+## Usage
+
+### Auth
 ```tsx
-// Use your existing Firebase setup - no changes needed
-import { chatService } from './services/ChatService';
+import { Auth } from '@shockproofai/shockproof-components';
+import { app } from './lib/firebase';
 
-const provider = createFirebaseProvider({
-  chatService: chatService,  // Your existing service
-  agentOptions: ['askRex', 'askRexTest'],
-  authRequired: true
-});
-
-// Customize per app
-const config = {
-  title: "App-Specific Assistant",
-  subtitle: "Customized for your app domain",
-  welcomeMessage: "Welcome to [App Name]! How can I help?",
-  placeholder: "Ask about [your domain]..."
-};
+<Auth firebaseApp={app} autoSignInAnonymously={true}>
+  <YourApp />
+</Auth>
 ```
 
-## 🔄 Updates & Versioning
+### Chatbot
+```tsx
+import { Chatbot } from '@shockproofai/shockproof-components';
 
-### Update Component Library
+<Chatbot
+  firebaseApp={app}
+  agentName="askRex"
+  enableDynamicQuestions={true}
+/>
+```
+
+## Development
 
 ```bash
-# Create new version
-git tag v1.1.0
-git push origin v1.1.0
-
-# Update in apps
-npm install git+https://github.com/shockproofai/shockproof-components.git#v1.1.0
-```
-
-### Version Strategy
-
-- **Major (v2.0.0)**: Breaking changes
-- **Minor (v1.1.0)**: New components or features
-- **Patch (v1.0.1)**: Bug fixes and improvements
-
-## 🏢 Monorepo Migration Ready
-
-When consolidating to monorepo:
-
-```json
-{
-  "dependencies": {
-    "@shockproofai/shockproof-components": "workspace:*"
-  }
-}
-```
-
-## 🛠️ Development
-
-```bash
-# Clone repository
-git clone https://github.com/shockproofai/shockproof-components.git
-
-# Install dependencies
-npm install
-
-# Build library
 npm run build
-
-# Watch for changes
-npm run dev
-
-# Type checking
-npm run type-check
+npm run release:patch
 ```
 
-## 📋 Roadmap
+## Release Process
 
-### Phase 1 (Current)
-- ✅ AI Chatbot Component
-- ✅ Firebase Provider
-- ✅ TypeScript Support
+```bash
+npm run release:patch  # Bug fixes
+npm run release:minor  # New features
+npm run release:major  # Breaking changes
+```
 
-### Phase 2 (Future)
-- 📊 Data Table Component
-- 📝 Form Builder Component
-- 📈 Charts & Visualizations
-- 🎨 Theme System
-
-### Phase 3 (Future)
-- 🧭 Navigation Components
-- 🔐 Authentication Components
-- 📱 Mobile Optimizations
-- 🎛️ Advanced Customization
-
-## 🤝 Contributing
-
-For internal ShockProof AI development:
-
-1. Create feature branch
-2. Implement component with tests
-3. Update documentation
-4. Create pull request
-5. Tag release version
-
-## 📄 License
-
-MIT - Internal use for ShockProof AI applications
+Pre-commit hook automatically builds dist/
