@@ -47,13 +47,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     setError(null);
     try {
       await firebaseSignInAnonymously(auth);
+      // Don't call setLoading(false) - let onAuthStateChanged handle it
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to sign in anonymously";
       setError(errorMessage);
       console.error("Anonymous sign-in error:", err);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading false on error
     }
   };
 
@@ -63,13 +63,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      // Don't call setLoading(false) - let onAuthStateChanged handle it
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to sign in with Google";
       setError(errorMessage);
       console.error("Google sign-in error:", err);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading false on error
     }
   };
 
@@ -78,13 +78,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     setError(null);
     try {
       await firebaseSignOut(auth);
+      // Don't call setLoading(false) - let onAuthStateChanged handle it
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to sign out";
       setError(errorMessage);
       console.error("Sign-out error:", err);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading false on error
     }
   };
 

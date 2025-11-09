@@ -37632,14 +37632,13 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         setError(null);
         try {
             await auth.signInAnonymously(auth$1);
+            // Don't call setLoading(false) - let onAuthStateChanged handle it
         }
         catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to sign in anonymously";
             setError(errorMessage);
             console.error("Anonymous sign-in error:", err);
-        }
-        finally {
-            setLoading(false);
+            setLoading(false); // Only set loading false on error
         }
     };
     const handleSignInWithGoogle = async () => {
@@ -37648,14 +37647,13 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         try {
             const provider = new auth.GoogleAuthProvider();
             await auth.signInWithPopup(auth$1, provider);
+            // Don't call setLoading(false) - let onAuthStateChanged handle it
         }
         catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to sign in with Google";
             setError(errorMessage);
             console.error("Google sign-in error:", err);
-        }
-        finally {
-            setLoading(false);
+            setLoading(false); // Only set loading false on error
         }
     };
     const handleSignOut = async () => {
@@ -37663,14 +37661,13 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         setError(null);
         try {
             await auth.signOut(auth$1);
+            // Don't call setLoading(false) - let onAuthStateChanged handle it
         }
         catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to sign out";
             setError(errorMessage);
             console.error("Sign-out error:", err);
-        }
-        finally {
-            setLoading(false);
+            setLoading(false); // Only set loading false on error
         }
     };
     const value = {
