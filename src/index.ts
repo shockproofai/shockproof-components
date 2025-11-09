@@ -29,6 +29,11 @@ export type {
   StreamingMetrics
 } from './AIChatbot';
 
+// === Auth Component (v2.1) ===
+export { Auth } from './Auth/Auth';
+export { useAuth } from './Auth/hooks/useAuth';
+export type { AuthConfig, AuthContextType } from './Auth/types';
+
 // === Future Components ===
 // export { DataTable } from './DataTable';
 // export { FormBuilder } from './FormBuilder';
