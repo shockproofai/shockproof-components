@@ -1,0 +1,10 @@
+#!/bin/sh
+# Pre-commit hook: Build and stage dist/ folder
+
+echo "🔨 Running pre-commit: building project..."
+npm run build
+
+echo "📦 Staging dist/ folder..."
+git add dist/
+
+echo "✅ Pre-commit complete"
