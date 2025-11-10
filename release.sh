@@ -21,7 +21,7 @@ npm run build
 
 # Stage changes
 echo "📤 Staging changes..."
-git add package.json dist/
+git add package.json package-lock.json dist/
 
 # Commit
 echo "💾 Committing..."
