@@ -196,6 +196,80 @@ This repository uses native git hooks configured in `.githooks/pre-commit`. The 
 
 The hook is configured via `git config core.hooksPath .githooks` during `postinstall`.
 
+**Note:** The pre-commit hook skips building if only `playground/` files are changed, allowing fast iteration during development testing.
+
+---
+
+## Development Testing
+
+The `playground/` directory contains a test application for developing and testing components in isolation.
+
+### Starting the Playground
+
+```bash
+cd playground
+npm install  # First time only
+npm run dev  # Starts Vite dev server on port 3000
+```
+
+The playground provides:
+- **Home page** (`/`) - Navigation to test pages
+- **Auth Test page** (`/auth-test`) - Test authentication flows with configuration toggles
+- **Chat Test page** (`/chat-test`) - Full-screen chatbot interface for testing chat functionality
+
+### Extending the Playground
+
+When adding a new component to the library, follow these steps to add it to the playground:
+
+1. **Create a test page** in `playground/src/pages/`:
+   ```tsx
+   // playground/src/pages/NewComponentTestPage.tsx
+   import { NewComponent } from '@shockproofai/shockproof-components';
+   import { app } from '../firebase';
+   import './NewComponentTestPage.css';
+
+   export function NewComponentTestPage() {
+     return (
+       <div className="new-component-test-page">
+         <h1>New Component Test</h1>
+         <NewComponent firebaseApp={app} />
+       </div>
+     );
+   }
+   ```
+
+2. **Create styles** in `playground/src/pages/NewComponentTestPage.css`
+
+3. **Add route** in `playground/src/App.tsx`:
+   ```tsx
+   import { NewComponentTestPage } from './pages/NewComponentTestPage';
+   
+   // Add to Routes
+   <Route path="/new-component" element={<NewComponentTestPage />} />
+   ```
+
+4. **Add navigation card** to `playground/src/pages/Home.tsx`:
+   ```tsx
+   <Link to="/new-component" className="card">
+     <h2>New Component</h2>
+     <p>Test your new component here</p>
+   </Link>
+   ```
+
+### Playground Configuration
+
+- **Firebase**: Uses the same Firebase config as ai-launchpad (ai-launchpad web app credentials)
+- **Tailwind CSS**: Configured to scan both `playground/src/**` and `../src/**` (component library)
+- **Hot Reload**: Changes to component library source files trigger automatic rebuild
+- **Isolated Dependencies**: Playground has its own `node_modules`, but imports components from `../src` via Vite alias
+
+### Important Notes
+
+- The playground is **not included** in the npm package (see `files` field in root `package.json`)
+- Playground changes **do not trigger** the pre-commit build hook
+- The playground has its own `.gitignore` to exclude `node_modules` and build artifacts
+- Use the playground to test components with real Firebase backend before releasing
+
 ---
 
 ## Release process

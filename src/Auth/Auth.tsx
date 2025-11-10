@@ -11,10 +11,11 @@ interface AuthProps extends AuthConfig {
 /**
  * Internal component that shows auth UI or children based on auth state
  */
-const AuthGate: React.FC<{ enableGoogle?: boolean; children: React.ReactNode }> = ({
-  enableGoogle,
-  children,
-}) => {
+const AuthGate: React.FC<{
+  enableGoogle?: boolean;
+  enableEmailLink?: boolean;
+  children: React.ReactNode;
+}> = ({ enableGoogle, enableEmailLink, children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   // Show loading spinner while checking auth state
@@ -28,7 +29,9 @@ const AuthGate: React.FC<{ enableGoogle?: boolean; children: React.ReactNode }> 
 
   // Show auth UI if not authenticated
   if (!isAuthenticated) {
-    return <AuthUI enableGoogle={enableGoogle} />;
+    return (
+      <AuthUI enableGoogle={enableGoogle} enableEmailLink={enableEmailLink} />
+    );
   }
 
   // Show children when authenticated
@@ -63,6 +66,8 @@ export const Auth: React.FC<AuthProps> = ({
   enableGoogle = true,
   enableEmailLink = false,
   onSendEmailLink,
+  emailLinkActionURL,
+  emailLinkHandleCodeInApp,
   children,
 }) => {
   return (
@@ -72,8 +77,10 @@ export const Auth: React.FC<AuthProps> = ({
       enableGoogle={enableGoogle}
       enableEmailLink={enableEmailLink}
       onSendEmailLink={onSendEmailLink}
+      emailLinkActionURL={emailLinkActionURL}
+      emailLinkHandleCodeInApp={emailLinkHandleCodeInApp}
     >
-      <AuthGate enableGoogle={enableGoogle}>
+      <AuthGate enableGoogle={enableGoogle} enableEmailLink={enableEmailLink}>
         {children}
       </AuthGate>
     </AuthProvider>

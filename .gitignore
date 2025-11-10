@@ -1,5 +1,10 @@
 node_modules/
 
+# Playground artifacts
+playground/node_modules/
+playground/dist/
+playground/.vite/
+
 # Backup files
 *.backup
 *.bak

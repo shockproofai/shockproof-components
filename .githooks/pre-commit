@@ -1,6 +1,14 @@
 #!/bin/sh
 # Pre-commit hook: Build and stage dist/ folder
 
+# Check if there are any changes outside the playground directory
+STAGED_FILES=$(git diff --cached --name-only | grep -v "^playground/")
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "⏭️  Only playground files changed, skipping build..."
+  exit 0
+fi
+
 echo "🔨 Running pre-commit: building project..."
 npm run build
 

@@ -35,10 +35,21 @@ export interface AuthConfig {
    * If not provided, Firebase's built-in sendSignInLinkToEmail will be used
    * 
    * @param email - The email address to send the sign-in link to
-   * @param link - The sign-in link URL to include in the email
    * @returns Promise that resolves when email is sent
    */
-  onSendEmailLink?: (email: string, link: string) => Promise<void>;
+  onSendEmailLink?: (email: string) => Promise<void>;
+
+  /**
+   * URL to redirect to after email link is clicked
+   * @default window.location.href
+   */
+  emailLinkActionURL?: string;
+
+  /**
+   * Whether to handle the sign-in link in the same app
+   * @default true
+   */
+  emailLinkHandleCodeInApp?: boolean;
 }
 
 /**
@@ -79,6 +90,21 @@ export interface AuthContextType {
    * Sign out current user
    */
   signOut: () => Promise<void>;
+
+  /**
+   * Send email link for passwordless sign-in
+   */
+  sendEmailLink: (email: string) => Promise<void>;
+
+  /**
+   * Complete email link sign-in after user clicks link
+   */
+  completeEmailLinkSignIn: (email: string) => Promise<void>;
+
+  /**
+   * Check if current URL is a sign-in link
+   */
+  isEmailLinkSignIn: () => boolean;
 }
 
 /**

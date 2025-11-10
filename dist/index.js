@@ -37608,11 +37608,14 @@ function createFirebaseProvider(config) {
 }
 
 const AuthContext = React.createContext(undefined);
-const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, }) => {
+const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, enableEmailLink = false, onSendEmailLink, emailLinkActionURL, emailLinkHandleCodeInApp = true, children, }) => {
     const [user, setUser] = React.useState(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
     const auth$1 = auth.getAuth(firebaseApp);
+    // Validate at least one auth method is enabled
+    React.useEffect(() => {
+    }, [autoSignInAnonymously, enableEmailLink]);
     // Listen to auth state changes
     React.useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(auth$1, (firebaseUser) => {
@@ -37621,6 +37624,22 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         });
         return () => unsubscribe();
     }, [auth$1]);
+    // Auto-detect and complete email link sign-in if URL contains sign-in link
+    React.useEffect(() => {
+        if (enableEmailLink && auth.isSignInWithEmailLink(auth$1, window.location.href)) {
+            const email = window.localStorage.getItem("emailForSignIn");
+            if (email) {
+                handleCompleteEmailLinkSignIn(email);
+            }
+            else {
+                // Email not found in localStorage
+                // User might have opened link on different device
+                // Set error to prompt for email re-entry
+                setError("Please enter your email to complete sign-in");
+                setLoading(false);
+            }
+        }
+    }, [auth$1, enableEmailLink]);
     // Auto sign-in anonymously if enabled
     React.useEffect(() => {
         if (autoSignInAnonymously && !user && !loading) {
@@ -37656,6 +37675,57 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
             setLoading(false); // Only set loading false on error
         }
     };
+    const handleSendEmailLink = async (email) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const actionCodeSettings = {
+                url: emailLinkActionURL || window.location.href,
+                handleCodeInApp: emailLinkHandleCodeInApp,
+            };
+            if (onSendEmailLink) {
+                // Custom email sender provided - use it
+                await onSendEmailLink(email);
+            }
+            else {
+                // Use Firebase's built-in email service
+                await auth.sendSignInLinkToEmail(auth$1, email, actionCodeSettings);
+            }
+            // Store email in localStorage for verification step
+            window.localStorage.setItem("emailForSignIn", email);
+            // Don't call setLoading(false) - user needs to check email
+            setLoading(false); // Actually set false here since no auth state change yet
+        }
+        catch (err) {
+            const errorMessage = err instanceof Error
+                ? err.message
+                : "Failed to send sign-in link";
+            setError(errorMessage);
+            console.error("Email link send error:", err);
+            setLoading(false);
+        }
+    };
+    const handleCompleteEmailLinkSignIn = async (email) => {
+        setLoading(true);
+        setError(null);
+        try {
+            await auth.signInWithEmailLink(auth$1, email, window.location.href);
+            // Clean up
+            window.localStorage.removeItem("emailForSignIn");
+            // Don't call setLoading(false) - let onAuthStateChanged handle it
+        }
+        catch (err) {
+            const errorMessage = err instanceof Error
+                ? err.message
+                : "Failed to complete email link sign-in";
+            setError(errorMessage);
+            console.error("Email link sign-in error:", err);
+            setLoading(false);
+        }
+    };
+    const handleIsEmailLinkSignIn = () => {
+        return auth.isSignInWithEmailLink(auth$1, window.location.href);
+    };
     const handleSignOut = async () => {
         setLoading(true);
         setError(null);
@@ -37678,6 +37748,9 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         signInAnonymously: handleSignInAnonymously,
         signInWithGoogle: handleSignInWithGoogle,
         signOut: handleSignOut,
+        sendEmailLink: handleSendEmailLink,
+        completeEmailLinkSignIn: handleCompleteEmailLinkSignIn,
+        isEmailLinkSignIn: handleIsEmailLinkSignIn,
     };
     return jsxRuntime.jsx(AuthContext.Provider, { value: value, children: children });
 };
@@ -37694,15 +37767,58 @@ const useAuth = () => {
     return context;
 };
 
-const AuthUI = ({ enableGoogle = true }) => {
-    const { loading, error, signInWithGoogle } = useAuth();
-    return (jsxRuntime.jsx("div", { className: "flex items-center justify-center h-screen", children: loading ? (jsxRuntime.jsx("div", { className: "flex items-center justify-center", children: jsxRuntime.jsx("div", { className: "w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" }) })) : (jsxRuntime.jsxs("div", { className: "space-y-4", children: [error && (jsxRuntime.jsx("div", { className: "p-4 text-sm text-red-800 bg-red-100 rounded-lg mb-4", children: error })), enableGoogle && (jsxRuntime.jsx("button", { onClick: signInWithGoogle, className: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2", children: "Sign in with Google" }))] })) }));
+const AuthUI = ({ enableGoogle = true, enableEmailLink = false, }) => {
+    const { loading, error, signInWithGoogle, sendEmailLink, completeEmailLinkSignIn, isEmailLinkSignIn, } = useAuth();
+    const [email, setEmail] = React.useState("");
+    const [emailSent, setEmailSent] = React.useState(false);
+    const [isCompletingSignIn, setIsCompletingSignIn] = React.useState(false);
+    // Check if this is an email link sign-in completion
+    const needsEmailForCompletion = isEmailLinkSignIn() && error?.includes("email");
+    const handleSendLink = async (e) => {
+        e.preventDefault();
+        if (!email)
+            return;
+        try {
+            await sendEmailLink(email);
+            setEmailSent(true);
+        }
+        catch (err) {
+            // Error is handled by AuthProvider
+            console.error("Failed to send email link:", err);
+        }
+    };
+    const handleCompleteSignIn = async (e) => {
+        e.preventDefault();
+        if (!email)
+            return;
+        setIsCompletingSignIn(true);
+        try {
+            await completeEmailLinkSignIn(email);
+        }
+        catch (err) {
+            console.error("Failed to complete sign-in:", err);
+        }
+        finally {
+            setIsCompletingSignIn(false);
+        }
+    };
+    const hasMultipleMethods = enableGoogle && enableEmailLink;
+    return (jsxRuntime.jsx("div", { className: "flex items-center justify-center h-screen", children: loading || isCompletingSignIn ? (jsxRuntime.jsx("div", { className: "flex items-center justify-center", children: jsxRuntime.jsx("div", { className: "w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" }) })) : needsEmailForCompletion ? (
+        // User clicked email link but email not found in localStorage
+        jsxRuntime.jsxs("div", { className: "w-full max-w-sm space-y-4", children: [jsxRuntime.jsxs("div", { className: "text-center", children: [jsxRuntime.jsx("h2", { className: "text-xl font-semibold mb-2", children: "Complete Sign-In" }), jsxRuntime.jsx("p", { className: "text-sm text-gray-600 mb-4", children: "Please enter your email to complete sign-in" })] }), error && (jsxRuntime.jsx("div", { className: "p-4 text-sm text-red-800 bg-red-100 rounded-lg", children: error })), jsxRuntime.jsxs("form", { onSubmit: handleCompleteSignIn, className: "space-y-3", children: [jsxRuntime.jsx("input", { type: "email", placeholder: "Enter your email", value: email, onChange: (e) => setEmail(e.target.value), required: true, className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }), jsxRuntime.jsx("button", { type: "submit", className: "w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2", children: "Complete Sign-In" })] })] })) : emailSent ? (
+        // Email link sent successfully
+        jsxRuntime.jsxs("div", { className: "w-full max-w-sm text-center space-y-4", children: [jsxRuntime.jsx("div", { className: "w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center", children: jsxRuntime.jsx("svg", { className: "w-8 h-8 text-green-600", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: jsxRuntime.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M5 13l4 4L19 7" }) }) }), jsxRuntime.jsx("h2", { className: "text-xl font-semibold", children: "Check your email" }), jsxRuntime.jsxs("p", { className: "text-sm text-gray-600", children: ["We sent a sign-in link to ", jsxRuntime.jsx("strong", { children: email })] }), jsxRuntime.jsx("p", { className: "text-xs text-gray-500", children: "Click the link in the email to sign in. The link will expire in 1 hour." }), jsxRuntime.jsx("button", { onClick: () => {
+                        setEmailSent(false);
+                        setEmail("");
+                    }, className: "text-sm text-blue-600 hover:underline", children: "Use a different email" })] })) : (
+        // Normal sign-in UI
+        jsxRuntime.jsxs("div", { className: "w-full max-w-sm space-y-4", children: [error && !needsEmailForCompletion && (jsxRuntime.jsx("div", { className: "p-4 text-sm text-red-800 bg-red-100 rounded-lg", children: error })), enableGoogle && (jsxRuntime.jsx("button", { onClick: signInWithGoogle, className: "w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2", children: "Sign in with Google" })), hasMultipleMethods && (jsxRuntime.jsxs("div", { className: "relative", children: [jsxRuntime.jsx("div", { className: "absolute inset-0 flex items-center", children: jsxRuntime.jsx("span", { className: "w-full border-t border-gray-300" }) }), jsxRuntime.jsx("div", { className: "relative flex justify-center text-xs uppercase", children: jsxRuntime.jsx("span", { className: "bg-white px-2 text-gray-500", children: "Or" }) })] })), enableEmailLink && (jsxRuntime.jsxs("form", { onSubmit: handleSendLink, className: "space-y-3", children: [jsxRuntime.jsx("input", { type: "email", placeholder: "Enter your email", value: email, onChange: (e) => setEmail(e.target.value), required: true, className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }), jsxRuntime.jsx("button", { type: "submit", className: "w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2", children: "Send sign-in link" })] }))] })) }));
 };
 
 /**
  * Internal component that shows auth UI or children based on auth state
  */
-const AuthGate = ({ enableGoogle, children, }) => {
+const AuthGate = ({ enableGoogle, enableEmailLink, children }) => {
     const { isAuthenticated, loading } = useAuth();
     // Show loading spinner while checking auth state
     if (loading) {
@@ -37710,7 +37826,7 @@ const AuthGate = ({ enableGoogle, children, }) => {
     }
     // Show auth UI if not authenticated
     if (!isAuthenticated) {
-        return jsxRuntime.jsx(AuthUI, { enableGoogle: enableGoogle });
+        return (jsxRuntime.jsx(AuthUI, { enableGoogle: enableGoogle, enableEmailLink: enableEmailLink }));
     }
     // Show children when authenticated
     return jsxRuntime.jsx(jsxRuntime.Fragment, { children: children });
@@ -37737,8 +37853,8 @@ const AuthGate = ({ enableGoogle, children, }) => {
  * </Auth>
  * ```
  */
-const Auth = ({ firebaseApp, autoSignInAnonymously = false, enableGoogle = true, enableEmailLink = false, onSendEmailLink, children, }) => {
-    return (jsxRuntime.jsx(AuthProvider, { firebaseApp: firebaseApp, autoSignInAnonymously: autoSignInAnonymously, enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, onSendEmailLink: onSendEmailLink, children: jsxRuntime.jsx(AuthGate, { enableGoogle: enableGoogle, children: children }) }));
+const Auth = ({ firebaseApp, autoSignInAnonymously = false, enableGoogle = true, enableEmailLink = false, onSendEmailLink, emailLinkActionURL, emailLinkHandleCodeInApp, children, }) => {
+    return (jsxRuntime.jsx(AuthProvider, { firebaseApp: firebaseApp, autoSignInAnonymously: autoSignInAnonymously, enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, onSendEmailLink: onSendEmailLink, emailLinkActionURL: emailLinkActionURL, emailLinkHandleCodeInApp: emailLinkHandleCodeInApp, children: jsxRuntime.jsx(AuthGate, { enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, children: children }) }));
 };
 
 exports.AIChatbot = AIChatbot;

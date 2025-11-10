@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom';
 import ReactDOM__default from 'react-dom';
 import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { getAuth, onAuthStateChanged, signInAnonymously, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, isSignInWithEmailLink, signInAnonymously, signInWithEmailLink, sendSignInLinkToEmail, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 // Unique ID creation requires a high quality random # generator. In the browser we therefore
 // require the crypto API and do not support built-in fallback to lower quality random number
@@ -37588,11 +37588,14 @@ function createFirebaseProvider(config) {
 }
 
 const AuthContext = createContext(undefined);
-const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, }) => {
+const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, enableEmailLink = false, onSendEmailLink, emailLinkActionURL, emailLinkHandleCodeInApp = true, children, }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const auth = getAuth(firebaseApp);
+    // Validate at least one auth method is enabled
+    useEffect(() => {
+    }, [autoSignInAnonymously, enableEmailLink]);
     // Listen to auth state changes
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -37601,6 +37604,22 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         });
         return () => unsubscribe();
     }, [auth]);
+    // Auto-detect and complete email link sign-in if URL contains sign-in link
+    useEffect(() => {
+        if (enableEmailLink && isSignInWithEmailLink(auth, window.location.href)) {
+            const email = window.localStorage.getItem("emailForSignIn");
+            if (email) {
+                handleCompleteEmailLinkSignIn(email);
+            }
+            else {
+                // Email not found in localStorage
+                // User might have opened link on different device
+                // Set error to prompt for email re-entry
+                setError("Please enter your email to complete sign-in");
+                setLoading(false);
+            }
+        }
+    }, [auth, enableEmailLink]);
     // Auto sign-in anonymously if enabled
     useEffect(() => {
         if (autoSignInAnonymously && !user && !loading) {
@@ -37636,6 +37655,57 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
             setLoading(false); // Only set loading false on error
         }
     };
+    const handleSendEmailLink = async (email) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const actionCodeSettings = {
+                url: emailLinkActionURL || window.location.href,
+                handleCodeInApp: emailLinkHandleCodeInApp,
+            };
+            if (onSendEmailLink) {
+                // Custom email sender provided - use it
+                await onSendEmailLink(email);
+            }
+            else {
+                // Use Firebase's built-in email service
+                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            }
+            // Store email in localStorage for verification step
+            window.localStorage.setItem("emailForSignIn", email);
+            // Don't call setLoading(false) - user needs to check email
+            setLoading(false); // Actually set false here since no auth state change yet
+        }
+        catch (err) {
+            const errorMessage = err instanceof Error
+                ? err.message
+                : "Failed to send sign-in link";
+            setError(errorMessage);
+            console.error("Email link send error:", err);
+            setLoading(false);
+        }
+    };
+    const handleCompleteEmailLinkSignIn = async (email) => {
+        setLoading(true);
+        setError(null);
+        try {
+            await signInWithEmailLink(auth, email, window.location.href);
+            // Clean up
+            window.localStorage.removeItem("emailForSignIn");
+            // Don't call setLoading(false) - let onAuthStateChanged handle it
+        }
+        catch (err) {
+            const errorMessage = err instanceof Error
+                ? err.message
+                : "Failed to complete email link sign-in";
+            setError(errorMessage);
+            console.error("Email link sign-in error:", err);
+            setLoading(false);
+        }
+    };
+    const handleIsEmailLinkSignIn = () => {
+        return isSignInWithEmailLink(auth, window.location.href);
+    };
     const handleSignOut = async () => {
         setLoading(true);
         setError(null);
@@ -37658,6 +37728,9 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, children, })
         signInAnonymously: handleSignInAnonymously,
         signInWithGoogle: handleSignInWithGoogle,
         signOut: handleSignOut,
+        sendEmailLink: handleSendEmailLink,
+        completeEmailLinkSignIn: handleCompleteEmailLinkSignIn,
+        isEmailLinkSignIn: handleIsEmailLinkSignIn,
     };
     return jsx(AuthContext.Provider, { value: value, children: children });
 };
@@ -37674,15 +37747,58 @@ const useAuth = () => {
     return context;
 };
 
-const AuthUI = ({ enableGoogle = true }) => {
-    const { loading, error, signInWithGoogle } = useAuth();
-    return (jsx("div", { className: "flex items-center justify-center h-screen", children: loading ? (jsx("div", { className: "flex items-center justify-center", children: jsx("div", { className: "w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" }) })) : (jsxs("div", { className: "space-y-4", children: [error && (jsx("div", { className: "p-4 text-sm text-red-800 bg-red-100 rounded-lg mb-4", children: error })), enableGoogle && (jsx("button", { onClick: signInWithGoogle, className: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2", children: "Sign in with Google" }))] })) }));
+const AuthUI = ({ enableGoogle = true, enableEmailLink = false, }) => {
+    const { loading, error, signInWithGoogle, sendEmailLink, completeEmailLinkSignIn, isEmailLinkSignIn, } = useAuth();
+    const [email, setEmail] = useState("");
+    const [emailSent, setEmailSent] = useState(false);
+    const [isCompletingSignIn, setIsCompletingSignIn] = useState(false);
+    // Check if this is an email link sign-in completion
+    const needsEmailForCompletion = isEmailLinkSignIn() && error?.includes("email");
+    const handleSendLink = async (e) => {
+        e.preventDefault();
+        if (!email)
+            return;
+        try {
+            await sendEmailLink(email);
+            setEmailSent(true);
+        }
+        catch (err) {
+            // Error is handled by AuthProvider
+            console.error("Failed to send email link:", err);
+        }
+    };
+    const handleCompleteSignIn = async (e) => {
+        e.preventDefault();
+        if (!email)
+            return;
+        setIsCompletingSignIn(true);
+        try {
+            await completeEmailLinkSignIn(email);
+        }
+        catch (err) {
+            console.error("Failed to complete sign-in:", err);
+        }
+        finally {
+            setIsCompletingSignIn(false);
+        }
+    };
+    const hasMultipleMethods = enableGoogle && enableEmailLink;
+    return (jsx("div", { className: "flex items-center justify-center h-screen", children: loading || isCompletingSignIn ? (jsx("div", { className: "flex items-center justify-center", children: jsx("div", { className: "w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" }) })) : needsEmailForCompletion ? (
+        // User clicked email link but email not found in localStorage
+        jsxs("div", { className: "w-full max-w-sm space-y-4", children: [jsxs("div", { className: "text-center", children: [jsx("h2", { className: "text-xl font-semibold mb-2", children: "Complete Sign-In" }), jsx("p", { className: "text-sm text-gray-600 mb-4", children: "Please enter your email to complete sign-in" })] }), error && (jsx("div", { className: "p-4 text-sm text-red-800 bg-red-100 rounded-lg", children: error })), jsxs("form", { onSubmit: handleCompleteSignIn, className: "space-y-3", children: [jsx("input", { type: "email", placeholder: "Enter your email", value: email, onChange: (e) => setEmail(e.target.value), required: true, className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }), jsx("button", { type: "submit", className: "w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2", children: "Complete Sign-In" })] })] })) : emailSent ? (
+        // Email link sent successfully
+        jsxs("div", { className: "w-full max-w-sm text-center space-y-4", children: [jsx("div", { className: "w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center", children: jsx("svg", { className: "w-8 h-8 text-green-600", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M5 13l4 4L19 7" }) }) }), jsx("h2", { className: "text-xl font-semibold", children: "Check your email" }), jsxs("p", { className: "text-sm text-gray-600", children: ["We sent a sign-in link to ", jsx("strong", { children: email })] }), jsx("p", { className: "text-xs text-gray-500", children: "Click the link in the email to sign in. The link will expire in 1 hour." }), jsx("button", { onClick: () => {
+                        setEmailSent(false);
+                        setEmail("");
+                    }, className: "text-sm text-blue-600 hover:underline", children: "Use a different email" })] })) : (
+        // Normal sign-in UI
+        jsxs("div", { className: "w-full max-w-sm space-y-4", children: [error && !needsEmailForCompletion && (jsx("div", { className: "p-4 text-sm text-red-800 bg-red-100 rounded-lg", children: error })), enableGoogle && (jsx("button", { onClick: signInWithGoogle, className: "w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2", children: "Sign in with Google" })), hasMultipleMethods && (jsxs("div", { className: "relative", children: [jsx("div", { className: "absolute inset-0 flex items-center", children: jsx("span", { className: "w-full border-t border-gray-300" }) }), jsx("div", { className: "relative flex justify-center text-xs uppercase", children: jsx("span", { className: "bg-white px-2 text-gray-500", children: "Or" }) })] })), enableEmailLink && (jsxs("form", { onSubmit: handleSendLink, className: "space-y-3", children: [jsx("input", { type: "email", placeholder: "Enter your email", value: email, onChange: (e) => setEmail(e.target.value), required: true, className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }), jsx("button", { type: "submit", className: "w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2", children: "Send sign-in link" })] }))] })) }));
 };
 
 /**
  * Internal component that shows auth UI or children based on auth state
  */
-const AuthGate = ({ enableGoogle, children, }) => {
+const AuthGate = ({ enableGoogle, enableEmailLink, children }) => {
     const { isAuthenticated, loading } = useAuth();
     // Show loading spinner while checking auth state
     if (loading) {
@@ -37690,7 +37806,7 @@ const AuthGate = ({ enableGoogle, children, }) => {
     }
     // Show auth UI if not authenticated
     if (!isAuthenticated) {
-        return jsx(AuthUI, { enableGoogle: enableGoogle });
+        return (jsx(AuthUI, { enableGoogle: enableGoogle, enableEmailLink: enableEmailLink }));
     }
     // Show children when authenticated
     return jsx(Fragment, { children: children });
@@ -37717,8 +37833,8 @@ const AuthGate = ({ enableGoogle, children, }) => {
  * </Auth>
  * ```
  */
-const Auth = ({ firebaseApp, autoSignInAnonymously = false, enableGoogle = true, enableEmailLink = false, onSendEmailLink, children, }) => {
-    return (jsx(AuthProvider, { firebaseApp: firebaseApp, autoSignInAnonymously: autoSignInAnonymously, enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, onSendEmailLink: onSendEmailLink, children: jsx(AuthGate, { enableGoogle: enableGoogle, children: children }) }));
+const Auth = ({ firebaseApp, autoSignInAnonymously = false, enableGoogle = true, enableEmailLink = false, onSendEmailLink, emailLinkActionURL, emailLinkHandleCodeInApp, children, }) => {
+    return (jsx(AuthProvider, { firebaseApp: firebaseApp, autoSignInAnonymously: autoSignInAnonymously, enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, onSendEmailLink: onSendEmailLink, emailLinkActionURL: emailLinkActionURL, emailLinkHandleCodeInApp: emailLinkHandleCodeInApp, children: jsx(AuthGate, { enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, children: children }) }));
 };
 
 export { AIChatbot, Auth, BaseChatProvider, ChatInput, ChatService, Chatbot, DynamicQuestions, MessageBubble, TimingInfo, createFirebaseProvider, useAuth, useChatState };
