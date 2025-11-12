@@ -32,7 +32,8 @@ export function AIChatbot({
   userId,
   saveSessionHistory,
   loadSessionId,
-  initialMessages
+  initialMessages,
+  showNewChatButton = true
 }: AIChatbotProps) {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -325,10 +326,12 @@ export function AIChatbot({
                 </TooltipProvider>
               )}
 
-              <Button variant="outline" size="sm" onClick={handleNewChat}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                New Chat
-              </Button>
+              {showNewChatButton && (
+                <Button variant="outline" size="sm" onClick={handleNewChat}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  New Chat
+                </Button>
+              )}
             </div>
           </div>
       </CardHeader>

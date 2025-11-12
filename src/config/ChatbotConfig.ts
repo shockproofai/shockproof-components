@@ -128,4 +128,10 @@ export interface ChatbotConfig {
     role: 'user' | 'assistant';
     timestamp: Date;
   }>;
+
+  /**
+   * Whether to show the "New Chat" button in the header (optional, default: true)
+   * Set to false when managing chat sessions externally
+   */
+  showNewChatButton?: boolean;
 }

@@ -398,6 +398,7 @@ export function Chatbot(props: ChatbotConfig) {
       saveSessionHistory={config.saveSessionHistory}
       loadSessionId={config.loadSessionId}
       initialMessages={config.initialMessages}
+      showNewChatButton={config.showNewChatButton}
     />
   );
 }

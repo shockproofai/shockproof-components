@@ -177,6 +177,7 @@ export interface AIChatbotProps {
   saveSessionHistory?: boolean;
   loadSessionId?: string;  // Session ID to load (renamed to avoid conflict with state)
   initialMessages?: ChatMessage[];
+  showNewChatButton?: boolean;  // Whether to show the "New Chat" button in the header
 }
 
 // Hook types
