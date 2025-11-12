@@ -171,6 +171,12 @@ export interface AIChatbotProps {
     email?: string;
     name?: string;
   } | null;
+
+  // Chat history props
+  userId?: string;
+  saveSessionHistory?: boolean;
+  loadSessionId?: string;  // Session ID to load (renamed to avoid conflict with state)
+  initialMessages?: ChatMessage[];
 }
 
 // Hook types

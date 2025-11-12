@@ -28,7 +28,11 @@ export function AIChatbot({
   onSessionEnd,
   className = '',
   style,
-  user
+  user,
+  userId,
+  saveSessionHistory,
+  loadSessionId,
+  initialMessages
 }: AIChatbotProps) {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -67,7 +71,11 @@ export function AIChatbot({
     onMessageSent,
     onMessageReceived,
     onError,
-    user
+    user,
+    userId,
+    saveSessionHistory,
+    loadSessionId,
+    initialMessages
   });
 
   // Track cumulative token usage across the session

@@ -99,4 +99,33 @@ export interface ChatbotConfig {
    * Custom styles for the chatbot container (optional)
    */
   style?: React.CSSProperties;
+
+  /**
+   * User ID for saving chat history (optional)
+   * Required if saveSessionHistory is true
+   */
+  userId?: string;
+
+  /**
+   * Whether to save chat session history to Firestore (optional, default: false)
+   * If true, userId must be provided
+   */
+  saveSessionHistory?: boolean;
+
+  /**
+   * Session ID to load an existing chat session (optional)
+   * If provided, the component will load messages from this session
+   */
+  loadSessionId?: string;
+
+  /**
+   * Initial messages to display (optional)
+   * Used when loading an existing session
+   */
+  initialMessages?: Array<{
+    id: string;
+    content: string;
+    role: 'user' | 'assistant';
+    timestamp: Date;
+  }>;
 }

@@ -19,6 +19,10 @@ interface UseChatStateOptions {
   onMessageReceived?: (response: ChatResponse) => void;
   onError?: (error: Error) => void;
   user?: { id: string; email?: string; name?: string; } | null;
+  userId?: string;
+  saveSessionHistory?: boolean;
+  loadSessionId?: string;
+  initialMessages?: ChatMessage[];
 }
 
 export function useChatState({
@@ -27,16 +31,20 @@ export function useChatState({
   onMessageSent,
   onMessageReceived,
   onError,
-  user
+  user,
+  userId,
+  saveSessionHistory = false,
+  loadSessionId,
+  initialMessages = []
 }: UseChatStateOptions): ChatState & ChatActions {
   
   // Core state
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(loadSessionId || null);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
     provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]
   );
@@ -47,6 +55,9 @@ export function useChatState({
     chunks?: number;
     averageChunkTime?: number;
   } | null>(null);
+  
+  // Track if session has been saved (to set title on first message)
+  const [sessionSaved, setSessionSaved] = useState(false);
   
   // Refs for managing state during async operations
   const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -113,6 +124,64 @@ export function useChatState({
         });
     }
   }, [messages, sessionId, user, provider, config, onMessageReceived, onError]);
+
+  /**
+   * Save chat session to Firestore
+   */
+  const saveSessionToFirestore = useCallback(async (
+    currentSessionId: string,
+    currentMessages: ChatMessage[]
+  ) => {
+    if (!saveSessionHistory || !userId || currentMessages.length === 0) {
+      return;
+    }
+
+    try {
+      // Dynamically import Firestore
+      const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+      const { firebaseApp } = provider as any; // Get firebaseApp from provider
+      
+      if (!firebaseApp) {
+        console.warn('[useChatState] Cannot save session: firebaseApp not available');
+        return;
+      }
+
+      const db = getFirestore(firebaseApp);
+      const sessionRef = doc(db, `users/${userId}/chatSessions/${currentSessionId}`);
+
+      // Get the first user message as title (truncate if too long)
+      const firstUserMessage = currentMessages.find(m => m.role === 'user');
+      const title = firstUserMessage 
+        ? (firstUserMessage.content.length > 100 
+            ? firstUserMessage.content.substring(0, 100) + '...' 
+            : firstUserMessage.content)
+        : 'New Chat';
+
+      // Prepare messages for storage (include all fields)
+      const messagesToSave = currentMessages.map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        role: msg.role,
+        timestamp: msg.timestamp,
+      }));
+
+      // Save or update session
+      await setDoc(sessionRef, {
+        title,
+        messages: messagesToSave,
+        updatedAt: serverTimestamp(),
+        ...(!sessionSaved && { createdAt: serverTimestamp() }) // Only set createdAt on first save
+      }, { merge: true });
+
+      if (!sessionSaved) {
+        setSessionSaved(true);
+      }
+
+      console.log(`[useChatState] Session saved: ${currentSessionId}`);
+    } catch (error) {
+      console.error('[useChatState] Error saving session:', error);
+    }
+  }, [saveSessionHistory, userId, sessionSaved, provider]);
 
   /**
    * Send a message
@@ -197,7 +266,14 @@ export function useChatState({
                 sources: response.sources,
                 knowledgeBreakdown: response.knowledgeBreakdown,
               };
-              return [...filtered, assistantMessage];
+              const updated = [...filtered, assistantMessage];
+              
+              // Save session to Firestore
+              if (sessionId) {
+                saveSessionToFirestore(sessionId, updated);
+              }
+              
+              return updated;
             });
             
             setLastResponse(response);
@@ -223,7 +299,14 @@ export function useChatState({
             sources: response.sources,
             knowledgeBreakdown: response.knowledgeBreakdown,
           };
-          return [...filtered, assistantMessage];
+          const updated = [...filtered, assistantMessage];
+          
+          // Save session to Firestore
+          if (sessionId) {
+            saveSessionToFirestore(sessionId, updated);
+          }
+          
+          return updated;
         });
         
         setLastResponse(response);
@@ -262,7 +345,8 @@ export function useChatState({
     onMessageSent, 
     onMessageReceived, 
     onError,
-    handleStreamingTimeout
+    handleStreamingTimeout,
+    saveSessionToFirestore
   ]);
   
   /**

@@ -318,6 +318,11 @@ type ChatMessage = import('./AIChatbot/types').ChatMessage;
  * ```
  */
 export function Chatbot(props: ChatbotConfig) {
+  // Validate props
+  if (props.saveSessionHistory && !props.userId) {
+    throw new Error('userId is required when saveSessionHistory is true');
+  }
+
   // Merge user config with defaults
   const config = useMemo(() => mergeWithDefaults(props), [props]);
 
@@ -389,6 +394,10 @@ export function Chatbot(props: ChatbotConfig) {
       onMessageReceived={handleMessageReceived}
       className={config.className}
       style={config.style}
+      userId={config.userId}
+      saveSessionHistory={config.saveSessionHistory}
+      loadSessionId={config.loadSessionId}
+      initialMessages={config.initialMessages}
     />
   );
 }

@@ -10,6 +10,8 @@ export function ChatTestPage() {
           firebaseApp={app}
           showTimingInfo={true}
           enableDynamicQuestions={true}
+          userId="anand.sathe@fidocs.ai"
+          saveSessionHistory={true}
         />
       </div>
     </Auth>

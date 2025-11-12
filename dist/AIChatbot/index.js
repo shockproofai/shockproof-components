@@ -81,17 +81,19 @@ function v4(options, buf, offset) {
 }
 
 // Custom hook for managing chat state
-function useChatState({ provider, config = {}, onMessageSent, onMessageReceived, onError, user }) {
+function useChatState({ provider, config = {}, onMessageSent, onMessageReceived, onError, user, userId, saveSessionHistory = false, loadSessionId, initialMessages = [] }) {
     // Core state
-    const [messages, setMessages] = React.useState([]);
+    const [messages, setMessages] = React.useState(initialMessages);
     const [isLoading, setIsLoading] = React.useState(false);
     const [isStreaming, setIsStreaming] = React.useState(false);
     const [streamingMessage, setStreamingMessage] = React.useState('');
     const [error, setError] = React.useState(null);
-    const [sessionId, setSessionId] = React.useState(null);
+    const [sessionId, setSessionId] = React.useState(loadSessionId || null);
     const [selectedAgent, setSelectedAgent] = React.useState(provider.getCurrentAgent?.() ?? provider.getAvailableAgents?.()?.[0]);
     const [lastResponse, setLastResponse] = React.useState(null);
     const [streamingMetrics, setStreamingMetrics] = React.useState(null);
+    // Track if session has been saved (to set title on first message)
+    const [sessionSaved, setSessionSaved] = React.useState(false);
     // Refs for managing state during async operations
     const streamingTimeoutRef = React.useRef(null);
     const streamingCompletedRef = React.useRef(false);
@@ -149,6 +151,53 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
             });
         }
     }, [messages, sessionId, user, provider, config, onMessageReceived, onError]);
+    /**
+     * Save chat session to Firestore
+     */
+    const saveSessionToFirestore = React.useCallback(async (currentSessionId, currentMessages) => {
+        if (!saveSessionHistory || !userId || currentMessages.length === 0) {
+            return;
+        }
+        try {
+            // Dynamically import Firestore
+            const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+            const { firebaseApp } = provider; // Get firebaseApp from provider
+            if (!firebaseApp) {
+                console.warn('[useChatState] Cannot save session: firebaseApp not available');
+                return;
+            }
+            const db = getFirestore(firebaseApp);
+            const sessionRef = doc(db, `users/${userId}/chatSessions/${currentSessionId}`);
+            // Get the first user message as title (truncate if too long)
+            const firstUserMessage = currentMessages.find(m => m.role === 'user');
+            const title = firstUserMessage
+                ? (firstUserMessage.content.length > 100
+                    ? firstUserMessage.content.substring(0, 100) + '...'
+                    : firstUserMessage.content)
+                : 'New Chat';
+            // Prepare messages for storage (include all fields)
+            const messagesToSave = currentMessages.map(msg => ({
+                id: msg.id,
+                content: msg.content,
+                role: msg.role,
+                timestamp: msg.timestamp,
+            }));
+            // Save or update session
+            await setDoc(sessionRef, {
+                title,
+                messages: messagesToSave,
+                updatedAt: serverTimestamp(),
+                ...(!sessionSaved && { createdAt: serverTimestamp() }) // Only set createdAt on first save
+            }, { merge: true });
+            if (!sessionSaved) {
+                setSessionSaved(true);
+            }
+            console.log(`[useChatState] Session saved: ${currentSessionId}`);
+        }
+        catch (error) {
+            console.error('[useChatState] Error saving session:', error);
+        }
+    }, [saveSessionHistory, userId, sessionSaved, provider]);
     /**
      * Send a message
      */
@@ -218,7 +267,12 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
                             sources: response.sources,
                             knowledgeBreakdown: response.knowledgeBreakdown,
                         };
-                        return [...filtered, assistantMessage];
+                        const updated = [...filtered, assistantMessage];
+                        // Save session to Firestore
+                        if (sessionId) {
+                            saveSessionToFirestore(sessionId, updated);
+                        }
+                        return updated;
                     });
                     setLastResponse(response);
                     onMessageReceived?.(response);
@@ -239,7 +293,12 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
                         sources: response.sources,
                         knowledgeBreakdown: response.knowledgeBreakdown,
                     };
-                    return [...filtered, assistantMessage];
+                    const updated = [...filtered, assistantMessage];
+                    // Save session to Firestore
+                    if (sessionId) {
+                        saveSessionToFirestore(sessionId, updated);
+                    }
+                    return updated;
                 });
                 setLastResponse(response);
                 onMessageReceived?.(response);
@@ -274,7 +333,8 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
         onMessageSent,
         onMessageReceived,
         onError,
-        handleStreamingTimeout
+        handleStreamingTimeout,
+        saveSessionToFirestore
     ]);
     /**
      * Clear all messages
@@ -36491,7 +36551,7 @@ AlertDescription.displayName = "AlertDescription";
  * This component provides a complete chat interface that can work with
  * any provider implementation (Firebase, REST API, etc.)
  */
-function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className = '', style, user }) {
+function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className = '', style, user, userId, saveSessionHistory, loadSessionId, initialMessages }) {
     const messagesEndRef = React.useRef(null);
     // Local state for streaming threshold
     const [streamingThreshold, setStreamingThreshold] = React.useState(config.streamingThreshold || 300);
@@ -36507,7 +36567,11 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
         onMessageSent,
         onMessageReceived,
         onError,
-        user
+        user,
+        userId,
+        saveSessionHistory,
+        loadSessionId,
+        initialMessages
     });
     // Track cumulative token usage across the session
     const [cumulativeTokenUsage, setCumulativeTokenUsage] = React.useState({
