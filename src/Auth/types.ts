@@ -31,6 +31,24 @@ export interface AuthConfig {
   enableEmailLink?: boolean;
 
   /**
+   * Custom heading text for the auth UI
+   * @default "Welcome to Shockproof AI"
+   */
+  heading?: string;
+
+  /**
+   * Custom tagline text shown below the heading
+   * @default "Your intelligent AI assistant platform"
+   */
+  tagline?: string;
+
+  /**
+   * Custom badge text shown at the bottom of the auth card
+   * @default "Secure, passwordless authentication"
+   */
+  badgeText?: string;
+
+  /**
    * Optional callback to handle email sending for passwordless login
    * If not provided, Firebase's built-in sendSignInLinkToEmail will be used
    * 

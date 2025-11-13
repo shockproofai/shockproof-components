@@ -14,8 +14,11 @@ interface AuthProps extends AuthConfig {
 const AuthGate: React.FC<{
   enableGoogle?: boolean;
   enableEmailLink?: boolean;
+  heading?: string;
+  tagline?: string;
+  badgeText?: string;
   children: React.ReactNode;
-}> = ({ enableGoogle, enableEmailLink, children }) => {
+}> = ({ enableGoogle, enableEmailLink, heading, tagline, badgeText, children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   // Show loading spinner while checking auth state
@@ -30,7 +33,13 @@ const AuthGate: React.FC<{
   // Show auth UI if not authenticated
   if (!isAuthenticated) {
     return (
-      <AuthUI enableGoogle={enableGoogle} enableEmailLink={enableEmailLink} />
+      <AuthUI 
+        enableGoogle={enableGoogle} 
+        enableEmailLink={enableEmailLink}
+        heading={heading}
+        tagline={tagline}
+        badgeText={badgeText}
+      />
     );
   }
 
@@ -65,6 +74,9 @@ export const Auth: React.FC<AuthProps> = ({
   autoSignInAnonymously = false,
   enableGoogle = true,
   enableEmailLink = false,
+  heading,
+  tagline,
+  badgeText,
   onSendEmailLink,
   emailLinkActionURL,
   emailLinkHandleCodeInApp,
@@ -80,7 +92,13 @@ export const Auth: React.FC<AuthProps> = ({
       emailLinkActionURL={emailLinkActionURL}
       emailLinkHandleCodeInApp={emailLinkHandleCodeInApp}
     >
-      <AuthGate enableGoogle={enableGoogle} enableEmailLink={enableEmailLink}>
+      <AuthGate 
+        enableGoogle={enableGoogle} 
+        enableEmailLink={enableEmailLink}
+        heading={heading}
+        tagline={tagline}
+        badgeText={badgeText}
+      >
         {children}
       </AuthGate>
     </AuthProvider>

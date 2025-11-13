@@ -52,9 +52,19 @@ Without this plugin, markdown content (bold, lists, code blocks, tables, etc.) w
 
 ## Auth component
 
-Use the `Auth` wrapper to centralize authentication for your app. It supports silent anonymous sign-in (useful when Firestore rules require `request.auth != null`), Google OAuth, and an email-link (passwordless) flow with an optional custom email sender.
+The `Auth` component provides a beautiful, production-ready authentication UI with support for Google OAuth and passwordless email link sign-in. It features a modern gradient design, loading states, and customizable text content.
 
-Basic usage:
+### Features
+
+- **🎨 Modern Design**: Beautiful gradient backgrounds, shadows, and professional card layout
+- **🔐 Multiple Auth Methods**: Google OAuth and/or passwordless email link sign-in
+- **⚡ Flexible Configuration**: Enable one or both authentication methods
+- **✨ Customizable Text**: Override heading, tagline, and security badge text
+- **📱 Responsive**: Works seamlessly on mobile and desktop
+- **🔄 Loading States**: Smooth transitions and loading indicators
+- **✅ Email Verification**: Complete flow for email link sign-in with localStorage management
+
+### Basic Usage
 
 ```tsx
 import { Auth } from '@shockproofai/shockproof-components';
@@ -69,19 +79,137 @@ function App() {
 }
 ```
 
-AuthConfig (options):
+### Advanced Usage with Custom Branding
 
-- `firebaseApp: FirebaseApp` (required) — your initialized Firebase app
-- `autoSignInAnonymously?: boolean` — if true, calls `signInAnonymously()` on mount when no user exists (default: false)
-- `enableGoogle?: boolean` — show Google sign-in button (default: true)
-- `enableEmailLink?: boolean` — enable email-link sign-in UI (default: false)
-- `onSendEmailLink?: (email: string) => Promise<void>` — optional override to send the magic link (if omitted the component will call Firebase's built-in `sendSignInLinkToEmail`)
+```tsx
+import { Auth } from '@shockproofai/shockproof-components';
+import { app } from './lib/firebase';
 
-Hook and API:
+function App() {
+  return (
+    <Auth 
+      firebaseApp={app}
+      enableGoogle={true}
+      enableEmailLink={true}
+      heading="Welcome to AskRex Knowledge Base"
+      tagline="Your intelligent assistant for commercial lending and credit analysis"
+      badgeText="Enterprise-grade security"
+    >
+      <YourAppContent />
+    </Auth>
+  );
+}
+```
 
-- `useAuth()` — returns `{ user, loading, isAuthenticated, signInWithGoogle(), signOut(), signInAnonymously() }`
+### AuthConfig Properties
 
-When you wrap your app with `Auth`, the children will be hidden until the auth state stabilizes (loading state shown). This centralizes auth and makes it trivial to change auth requirements later (for example require Google-only or show an explicit sign-in page).
+#### Required Properties
+
+- **`firebaseApp: FirebaseApp`** (required)  
+  Your initialized Firebase app instance.
+
+#### Authentication Methods
+
+- **`autoSignInAnonymously?: boolean`**  
+  If true, calls `signInAnonymously()` on mount when no user exists (default: `false`).  
+  Useful when Firestore rules require `request.auth != null` but you don't need user identity.
+
+- **`enableGoogle?: boolean`**  
+  Show Google OAuth sign-in button (default: `true`).  
+  Displays the Google button with official branding.
+
+- **`enableEmailLink?: boolean`**  
+  Enable passwordless email link sign-in UI (default: `false`).  
+  Shows an email input form with magic link functionality.
+
+#### Email Link Configuration
+
+- **`onSendEmailLink?: (email: string) => Promise<void>`**  
+  Optional override to send the magic link (if omitted, the component will call Firebase's built-in `sendSignInLinkToEmail`).  
+  Use this to integrate with your own email service (e.g., SendGrid, Resend).
+
+- **`emailLinkActionURL?: string`**  
+  URL to redirect to after email link is clicked (default: `window.location.href`).
+
+- **`emailLinkHandleCodeInApp?: boolean`**  
+  Whether to handle the sign-in link in the same app (default: `true`).
+
+#### UI Customization (New in v2.4)
+
+- **`heading?: string`**  
+  Custom heading text for the auth UI (default: `"Welcome to Shockproof AI"`).  
+  Appears as the main title above the auth card.
+
+- **`tagline?: string`**  
+  Custom tagline text shown below the heading (default: `"Your intelligent AI assistant platform"`).  
+  Describes your application or service.
+
+- **`badgeText?: string`**  
+  Custom badge text shown at the bottom of the auth card (default: `"Secure, passwordless authentication"`).  
+  Typically highlights security or trust features.
+
+### Hook and API
+
+The `useAuth()` hook provides access to authentication state and methods:
+
+```tsx
+import { useAuth } from '@shockproofai/shockproof-components';
+
+function MyComponent() {
+  const { 
+    user,                      // Current Firebase user object or null
+    loading,                   // Boolean: true while checking auth state
+    error,                     // String: error message if auth failed
+    isAuthenticated,           // Boolean: true if user is signed in
+    signInWithGoogle,          // Function: trigger Google OAuth flow
+    signInAnonymously,         // Function: sign in anonymously
+    sendEmailLink,             // Function: send magic link to email
+    completeEmailLinkSignIn,   // Function: complete email link sign-in
+    isEmailLinkSignIn,         // Function: check if URL is email link
+    signOut                    // Function: sign out current user
+  } = useAuth();
+
+  return (
+    <div>
+      {isAuthenticated ? (
+        <p>Welcome, {user?.email || 'Anonymous'}!</p>
+      ) : (
+        <button onClick={signInWithGoogle}>Sign In</button>
+      )}
+    </div>
+  );
+}
+```
+
+### Auth UI Modes
+
+The Auth component automatically adapts its UI based on which methods are enabled:
+
+**Google Only** (`enableGoogle: true, enableEmailLink: false`):
+- Shows single Google sign-in button
+- Clean, minimal interface
+
+**Email Link Only** (`enableGoogle: false, enableEmailLink: true`):
+- Shows email input form
+- "Send sign-in link" button
+- Email verification flow
+
+**Both Methods** (`enableGoogle: true, enableEmailLink: true`):
+- Google button at top
+- "Or continue with email" divider
+- Email form below
+- Standard pattern used by modern apps (Notion, Linear, etc.)
+
+### Behavior
+
+When you wrap your app with `Auth`, the children will be hidden until the auth state stabilizes (loading state shown). This centralizes auth and makes it trivial to change auth requirements later (for example, require Google-only or show an explicit sign-in page).
+
+The component automatically:
+- Handles loading states with spinner
+- Stores email in localStorage for email link completion
+- Redirects after successful authentication
+- Shows appropriate error messages
+- Manages Firebase auth state changes
 
 ---
 
