@@ -43,7 +43,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   }, [message]);
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-4 bg-white border-t">
+    <form onSubmit={handleSubmit} className="flex gap-2 p-2 bg-white border-t">
       <div className="flex-1">
         <Textarea
           ref={textareaRef}

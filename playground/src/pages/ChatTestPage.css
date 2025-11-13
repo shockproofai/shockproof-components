@@ -1,4 +1,4 @@
-/* Full-screen chat layout matching ai-learn-stream */
+/* Full-screen chat layout with resizable sidebar */
 .chat-test-page {
   position: fixed;
   top: 0;
@@ -8,15 +8,47 @@
   width: 100vw;
   height: 100vh;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
-/* Ensure Chatbot component fills the container */
-.chat-test-page > * {
+.chat-test-page.resizing {
+  user-select: none;
+}
+
+.sidebar-wrapper {
+  min-width: 200px;
+  max-width: 500px;
+  width: 280px;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+}
+
+.sidebar-wrapper .chat-sidebar {
+  flex: 1;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background-color: #e1e4e8;
+  cursor: col-resize;
+  z-index: 10;
+  transition: background-color 0.2s;
+}
+
+.resize-handle:hover,
+.resize-handle.resizing {
+  background-color: #0969da;
+}
+
+.chat-main {
   flex: 1;
   height: 100%;
-  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
