@@ -27,6 +27,27 @@ Install peer deps:
 npm install firebase react react-dom
 ```
 
+### Required Tailwind Configuration
+
+The Chatbot component uses markdown rendering with rich typography. You **must** install and configure the Tailwind Typography plugin in your consuming application:
+
+```bash
+npm install -D @tailwindcss/typography
+```
+
+Then add it to your `tailwind.config.js`:
+
+```javascript
+module.exports = {
+  // ... your config
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
+}
+```
+
+Without this plugin, markdown content (bold, lists, code blocks, tables, etc.) will not render correctly.
+
 ---
 
 ## Auth component
