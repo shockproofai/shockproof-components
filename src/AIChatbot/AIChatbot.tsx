@@ -33,7 +33,8 @@ export function AIChatbot({
   saveSessionHistory,
   loadSessionId,
   initialMessages,
-  showNewChatButton = true
+  showNewChatButton = true,
+  showHeader = true
 }: AIChatbotProps) {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -226,7 +227,8 @@ export function AIChatbot({
       data-theme={config.theme || 'auto'}
     >
       {/* Header */}
-      <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-purple-50">
+      {showHeader && (
+        <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-purple-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
@@ -334,7 +336,8 @@ export function AIChatbot({
               )}
             </div>
           </div>
-      </CardHeader>
+        </CardHeader>
+      )}
 
       {/* Messages */}
       <CardContent className="flex-1 overflow-y-auto p-0 space-y-4">

@@ -134,4 +134,10 @@ export interface ChatbotConfig {
    * Set to false when managing chat sessions externally
    */
   showNewChatButton?: boolean;
+
+  /**
+   * Whether to show the title header bar (optional, default: true)
+   * Set to false to hide the header and maximize chat area
+   */
+  showHeader?: boolean;
 }

@@ -399,6 +399,7 @@ export function Chatbot(props: ChatbotConfig) {
       loadSessionId={config.loadSessionId}
       initialMessages={config.initialMessages}
       showNewChatButton={config.showNewChatButton}
+      showHeader={config.showHeader}
     />
   );
 }

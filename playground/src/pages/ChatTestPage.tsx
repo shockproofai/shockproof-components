@@ -80,11 +80,13 @@ export function ChatTestPage() {
             firebaseApp={app}
             showTimingInfo={true}
             enableDynamicQuestions={true}
+            maxInitialQuestions={14}
             userId={userId}
             saveSessionHistory={true}
             loadSessionId={activeSessionId || undefined}
             initialMessages={initialMessages}
             showNewChatButton={false}
+            showHeader={false}
           />
         </div>
       </div>

@@ -17,7 +17,7 @@ export const defaultChatbotConfig: Partial<ChatbotConfig> = {
 /**
  * Merge user config with defaults
  */
-export function mergeWithDefaults(userConfig: ChatbotConfig): Required<Omit<ChatbotConfig, 'topicContext' | 'onMessageSent' | 'onResponseReceived' | 'className' | 'style' | 'title' | 'subtitle' | 'userId' | 'saveSessionHistory' | 'loadSessionId' | 'initialMessages' | 'showNewChatButton'>> & Pick<ChatbotConfig, 'topicContext' | 'onMessageSent' | 'onResponseReceived' | 'className' | 'style' | 'title' | 'subtitle' | 'userId' | 'saveSessionHistory' | 'loadSessionId' | 'initialMessages' | 'showNewChatButton'> {
+export function mergeWithDefaults(userConfig: ChatbotConfig): Required<Omit<ChatbotConfig, 'topicContext' | 'onMessageSent' | 'onResponseReceived' | 'className' | 'style' | 'title' | 'subtitle' | 'userId' | 'saveSessionHistory' | 'loadSessionId' | 'initialMessages' | 'showNewChatButton' | 'showHeader'>> & Pick<ChatbotConfig, 'topicContext' | 'onMessageSent' | 'onResponseReceived' | 'className' | 'style' | 'title' | 'subtitle' | 'userId' | 'saveSessionHistory' | 'loadSessionId' | 'initialMessages' | 'showNewChatButton' | 'showHeader'> {
   return {
     ...defaultChatbotConfig,
     ...userConfig,

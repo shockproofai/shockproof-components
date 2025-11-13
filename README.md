@@ -80,31 +80,144 @@ import { app } from './lib/firebase';
   availableAgents={["askRex", "askRexTest"]}
   streamingThreshold={300}
   enableDynamicQuestions={true}
-  showSources={true}
   showTimingInfo={true}
   placeholder="Ask me anything..."
   maxInitialQuestions={8}
+  showNewChatButton={true}
+  showHeader={true}
 />
 ```
 
-ChatbotConfig (options):
+### ChatbotConfig Properties
 
-- `firebaseApp: FirebaseApp` (required)
-- `agentName?: string` — default agent to use (default: `askRex`)
-- `availableAgents?: string[]` — list of agent names user can switch to
-- `streamingThreshold?: number` — token length threshold to enable streaming (default: 300)
-- `enableDynamicQuestions?: boolean` — fetch suggested questions from Firestore (default: true)
-- `showSources?: boolean` — show document/source links in responses (default: true)
-- `showTimingInfo?: boolean` — display timing/token metrics (default: false)
-- `placeholder?: string` — input placeholder
-- `maxInitialQuestions?: number` — initial number of suggested questions shown (default: 8)
+#### Required Properties
 
-Additionally the component respects remote config flags stored in Firestore under the `config/app` document:
+- **`firebaseApp: FirebaseApp`** (required)  
+  Your initialized Firebase app instance.
 
-- `showAgentSelector: boolean` — whether to render the agent selector
-- `showStreamingSelector: boolean` — whether to render a streaming toggle
+#### Firebase Configuration
 
-These are read on mount so the UI matches the project's configuration.
+- **`useEmulators?: boolean`**  
+  Whether to use Firebase emulators for local development (default: `false`).
+
+- **`projectId?: string`**  
+  Firebase project ID. If not provided, inferred from `firebaseApp.options.projectId`.
+
+#### Agent Configuration
+
+- **`agentName?: string`**  
+  Default agent to use for chat responses (default: `'askRex'`).  
+  This should match a document ID in your Firestore `agents` collection.
+
+- **`availableAgents?: string[]`**  
+  List of available agent names that users can switch between (default: `['askRex']`).  
+  Each agent should exist in the Firestore `agents` collection.
+
+#### Search & Retrieval
+
+- **`maxResults?: number`**  
+  Maximum number of context documents to retrieve from the vector store (default: `5`).  
+  Higher values provide more context but may increase response time.
+
+#### Streaming Configuration
+
+- **`streamingThreshold?: number`**  
+  Minimum number of characters before streaming begins (default: `300`).  
+  - Set to `0` to always stream responses immediately
+  - Set to a high value (e.g., `10000`) to effectively disable streaming
+  - Responses shorter than this threshold appear all at once
+
+#### UI Features
+
+- **`enableDynamicQuestions?: boolean`**  
+  Enable the dynamic questions feature that fetches suggested questions from Firestore (default: `true`).
+
+- **`maxInitialQuestions?: number`**  
+  Maximum number of questions to show initially (default: `8`).  
+  Additional questions can be revealed with a "Show More" button.
+
+- **`showTimingInfo?: boolean`**  
+  Show timing information and token usage metrics for debugging (default: `false`).  
+  Useful during development to understand performance characteristics.
+
+- **`showNewChatButton?: boolean`**  
+  Whether to show the "New Chat" button in the header (default: `true`).  
+  Set to `false` when managing chat sessions externally (e.g., with a sidebar).
+
+- **`showHeader?: boolean`**  
+  Whether to show the title header bar with branding and controls (default: `true`).  
+  Set to `false` to hide the header and maximize the chat area (useful when embedding in custom layouts).
+
+#### Text Customization
+
+- **`title?: string`**  
+  Custom title for the chatbot header (default: `"Ask Rex"`).
+
+- **`subtitle?: string`**  
+  Optional subtitle text displayed below the title in the header.
+
+- **`placeholder?: string`**  
+  Custom placeholder text for the input field (default: `"Ask me anything about the course..."`).
+
+#### Context & Topics
+
+- **`topicContext?: object`**  
+  Initial topic context for the conversation (optional).  
+  ```tsx
+  topicContext={{
+    originalTopic: "React Hooks",
+    topicDescription: "Understanding useState and useEffect",
+    contextHints: ["functional components", "side effects"]
+  }}
+  ```
+
+#### Chat History (v2.3+)
+
+- **`userId?: string`**  
+  User identifier for saving chat history (optional).  
+  Required if `saveSessionHistory` is `true`.
+
+- **`saveSessionHistory?: boolean`**  
+  Whether to save chat sessions to Firestore (default: `false`).  
+  When enabled, sessions are saved to `users/{userId}/chatSessions/{sessionId}`.
+
+- **`loadSessionId?: string`**  
+  Session ID to load an existing chat session (optional).  
+  Use this to restore a previous conversation.
+
+- **`initialMessages?: ChatMessage[]`**  
+  Initial messages to display when loading a session (optional).  
+  ```tsx
+  initialMessages={[
+    { id: '1', content: 'Hello!', role: 'user', timestamp: new Date() },
+    { id: '2', content: 'Hi there!', role: 'assistant', timestamp: new Date() }
+  ]}
+  ```
+
+#### Callbacks
+
+- **`onMessageSent?: (message: string) => void`**  
+  Callback fired when a user sends a message.
+
+- **`onResponseReceived?: (response: string) => void`**  
+  Callback fired when an assistant response is received.
+
+#### Styling
+
+- **`className?: string`**  
+  Custom CSS class name for the root chatbot container.
+
+- **`style?: React.CSSProperties`**  
+  Custom inline styles for the chatbot container.
+
+### Remote Configuration
+
+The chatbot also respects configuration flags stored in Firestore under the `config/app` document:
+
+- **`showAgentSelector: boolean`** — Controls whether the agent selector dropdown is visible
+- **`showStreamingSelector: boolean`** — Controls whether the streaming threshold selector is visible
+
+These are read on component mount, allowing you to centrally manage UI features without code changes.
 
 ---
 
