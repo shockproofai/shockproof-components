@@ -31,6 +31,8 @@ export type {
 
 // === Auth Component (v2.1) ===
 export { Auth } from './Auth/Auth';
+export { AuthProvider } from './Auth/providers/AuthProvider';
+export { AuthUI } from './Auth/components/AuthUI';
 export { useAuth } from './Auth/hooks/useAuth';
 export type { AuthConfig, AuthContextType } from './Auth/types';
 
