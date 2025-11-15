@@ -9,7 +9,11 @@ export const defaultChatbotConfig: Partial<ChatbotConfig> = {
   availableAgents: ['askRex'],
   maxResults: 5,
   streamingThreshold: 300,
-  enableDynamicQuestions: true,  maxInitialQuestions: 8,
+  enableDynamicQuestions: true,
+  maxInitialQuestions: 8,
+  uiVariant: 'default',
+  hideShowMoreButton: false,
+  welcomeGreeting: '',
   showTimingInfo: false,
   placeholder: 'Ask me anything about the course...',
 };
@@ -31,6 +35,9 @@ export function mergeWithDefaults(userConfig: ChatbotConfig): Required<Omit<Chat
     maxResults: userConfig.maxResults ?? defaultChatbotConfig.maxResults!,
     streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold!,
     enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions!,    maxInitialQuestions: userConfig.maxInitialQuestions ?? defaultChatbotConfig.maxInitialQuestions!,
+  uiVariant: userConfig.uiVariant ?? defaultChatbotConfig.uiVariant!,
+  hideShowMoreButton: userConfig.hideShowMoreButton ?? defaultChatbotConfig.hideShowMoreButton!,
+  welcomeGreeting: userConfig.welcomeGreeting ?? defaultChatbotConfig.welcomeGreeting!,
     showTimingInfo: userConfig.showTimingInfo ?? defaultChatbotConfig.showTimingInfo!,
     placeholder: userConfig.placeholder ?? defaultChatbotConfig.placeholder!,
   };

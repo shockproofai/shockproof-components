@@ -30265,7 +30265,7 @@ const Textarea = React.forwardRef(({ className, ...props }, ref) => {
 });
 Textarea.displayName = "Textarea";
 
-const ChatInput = ({ onSendMessage, isLoading = false, placeholder = "Ask a question...", disabled = false }) => {
+const ChatInput = ({ onSendMessage, isLoading = false, placeholder = "Ask a question...", disabled = false, uiVariant = 'default', isEmptyState = false }) => {
     const [message, setMessage] = useState('');
     const textareaRef = useRef(null);
     const handleSubmit = (e) => {
@@ -30288,6 +30288,11 @@ const ChatInput = ({ onSendMessage, isLoading = false, placeholder = "Ask a ques
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
     }, [message]);
+    // Rex variant: broader, multiline, centered white input
+    if (uiVariant === 'rex' && isEmptyState) {
+        return (jsx("form", { onSubmit: handleSubmit, className: "w-full max-w-3xl mx-auto", children: jsxs("div", { className: "relative flex items-end gap-2 p-4 bg-white rounded-full shadow-lg border border-gray-200 hover:shadow-xl transition-shadow", children: [jsx(Textarea, { ref: textareaRef, value: message, onChange: (e) => setMessage(e.target.value), onKeyDown: handleKeyDown, placeholder: placeholder, disabled: isLoading || disabled, className: "flex-1 min-h-[56px] max-h-40 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-base", rows: 1 }), jsx(Button, { type: "submit", disabled: !message.trim() || isLoading || disabled, size: "icon", className: "rounded-full h-12 w-12 flex-shrink-0", children: isLoading ? (jsx(LoaderCircle, { className: "w-5 h-5 animate-spin" })) : (jsx(Send, { className: "w-5 h-5" })) })] }) }));
+    }
+    // Default variant: standard bottom input
     return (jsxs("form", { onSubmit: handleSubmit, className: "flex gap-2 p-2 bg-white border-t", children: [jsx("div", { className: "flex-1", children: jsx(Textarea, { ref: textareaRef, value: message, onChange: (e) => setMessage(e.target.value), onKeyDown: handleKeyDown, placeholder: placeholder, disabled: isLoading || disabled, className: "min-h-[44px] max-h-32 resize-none", rows: 1 }) }), jsx(Button, { type: "submit", disabled: !message.trim() || isLoading || disabled, size: "sm", className: "self-end", children: isLoading ? (jsx(LoaderCircle, { className: "w-4 h-4 animate-spin" })) : (jsx(Send, { className: "w-4 h-4" })) })] }));
 };
 
@@ -34115,6 +34120,8 @@ const FALLBACK_QUESTIONS = [
 const DynamicQuestions = ({ onQuestionClick, isLoading, questions, // No default - undefined means loading
 maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
 fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
+hideShowMoreButton = false, // Default to showing show more button
+uiVariant = 'default', // Default to standard UI
  }) => {
     const [showMore, setShowMore] = useState(false);
     const { initialQuestions, additionalQuestions, questionsLoaded } = useMemo(() => {
@@ -34147,6 +34154,13 @@ fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
     const renderQuestion = (question, index) => {
         const truncatedQuestion = truncateText(question.question);
         const isLongQuestion = question.question.length > 120;
+        // Rex-style pill button
+        if (uiVariant === 'rex') {
+            return (jsx("button", { onClick: () => onQuestionClick(question.question, {
+                    contextHints: question.contextHints,
+                }), disabled: isLoading, className: "px-6 py-3 rounded-full border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md", children: truncatedQuestion }, `${question.id}-${index}`));
+        }
+        // Default style with tooltip
         const questionButton = (jsx(Button, { variant: "outline", size: "sm", onClick: () => onQuestionClick(question.question, {
                 contextHints: question.contextHints,
             }), disabled: isLoading, className: "text-left justify-start group hover:bg-blue-50 hover:border-blue-200 hover:text-black transition-colors h-auto min-h-[2.5rem] whitespace-normal p-4", children: jsx("span", { className: "text-sm font-normal leading-tight whitespace-normal break-words", children: truncatedQuestion }) }, `${question.id}-${index}`));
@@ -34156,9 +34170,14 @@ fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
         return questionButton;
     };
     if (!questionsLoaded || (initialQuestions.length === 0 && additionalQuestions.length === 0)) {
-        return (jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl animate-pulse", children: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (jsx("div", { className: "h-12 bg-gray-200 rounded-md border" }, i))) }));
+        return (jsx("div", { className: uiVariant === 'rex' ? "flex flex-wrap justify-center gap-3 max-w-2xl animate-pulse" : "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl animate-pulse", children: [1, 2, 3, 4, 5, 6, 7, 8].slice(0, maxInitialQuestions).map((i) => (jsx("div", { className: uiVariant === 'rex' ? "h-12 w-48 bg-gray-200 rounded-full" : "h-12 bg-gray-200 rounded-md border" }, i))) }));
     }
-    return (jsx(TooltipProvider, { children: jsxs("div", { className: "max-w-4xl", children: [jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-3", children: initialQuestions.map((question, index) => renderQuestion(question, index)) }), additionalQuestions.length > 0 && (jsx("div", { className: "mt-4", children: jsxs(Button, { variant: "ghost", size: "sm", onClick: handleToggleMore, disabled: isLoading, className: "w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50", children: [jsx(Sparkles, { className: "w-3 h-3 mr-2" }), showMore ? (jsxs(Fragment, { children: ["Show fewer questions", jsx(ChevronUp, { className: "w-3 h-3 ml-2" })] })) : (jsxs(Fragment, { children: ["Show more questions (", additionalQuestions.length, ")", jsx(ChevronDown, { className: "w-3 h-3 ml-2" })] }))] }) })), showMore && additionalQuestions.length > 0 && (jsx("div", { className: "mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200", children: additionalQuestions.map((question, index) => renderQuestion(question, index + initialQuestions.length)) }))] }) }));
+    // Rex-style centered layout
+    if (uiVariant === 'rex') {
+        return (jsxs("div", { className: "flex flex-col items-center gap-3 max-w-2xl", children: [jsx("div", { className: "flex flex-wrap justify-center gap-3", children: initialQuestions.map((question, index) => renderQuestion(question, index)) }), !hideShowMoreButton && additionalQuestions.length > 0 && (jsxs(Button, { variant: "ghost", size: "sm", onClick: handleToggleMore, disabled: isLoading, className: "text-blue-600 hover:text-blue-700 hover:bg-blue-50", children: [jsx(Sparkles, { className: "w-3 h-3 mr-2" }), showMore ? (jsxs(Fragment, { children: ["Show fewer questions", jsx(ChevronUp, { className: "w-3 h-3 ml-2" })] })) : (jsxs(Fragment, { children: ["Show more questions (", additionalQuestions.length, ")", jsx(ChevronDown, { className: "w-3 h-3 ml-2" })] }))] })), showMore && additionalQuestions.length > 0 && (jsx("div", { className: "flex flex-wrap justify-center gap-3 animate-in slide-in-from-top-2 duration-200", children: additionalQuestions.map((question, index) => renderQuestion(question, index + initialQuestions.length)) }))] }));
+    }
+    // Default grid layout
+    return (jsx(TooltipProvider, { children: jsxs("div", { className: "max-w-4xl", children: [jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-3", children: initialQuestions.map((question, index) => renderQuestion(question, index)) }), !hideShowMoreButton && additionalQuestions.length > 0 && (jsx("div", { className: "mt-4", children: jsxs(Button, { variant: "ghost", size: "sm", onClick: handleToggleMore, disabled: isLoading, className: "w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50", children: [jsx(Sparkles, { className: "w-3 h-3 mr-2" }), showMore ? (jsxs(Fragment, { children: ["Show fewer questions", jsx(ChevronUp, { className: "w-3 h-3 ml-2" })] })) : (jsxs(Fragment, { children: ["Show more questions (", additionalQuestions.length, ")", jsx(ChevronDown, { className: "w-3 h-3 ml-2" })] }))] }) })), showMore && additionalQuestions.length > 0 && (jsx("div", { className: "mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200", children: additionalQuestions.map((question, index) => renderQuestion(question, index + initialQuestions.length)) }))] }) }));
 };
 
 // packages/core/number/src/number.ts
@@ -36690,7 +36709,9 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                                         hasGetAvailableAgents: !!provider.getAvailableAgents
                                     });
                                     return shouldShow;
-                                })() && (jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsx(SelectTrigger, { className: "w-40", children: jsx(SelectValue, {}) }), jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents?.().map((agent) => (jsx(SelectItem, { value: agent, children: jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsx(Bot, { className: "w-4 h-4" })) : (jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (firestoreConfig.showStreamingSelector ?? config.showStreamingSelector) && (jsx(TooltipProvider, { children: jsxs(Tooltip, { children: [jsx(TooltipTrigger, { asChild: true, children: jsxs("div", { className: "flex items-center gap-1", children: [jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsx(SelectTrigger, { className: "w-40", children: jsx(SelectValue, {}) }), jsxs(SelectContent, { className: "z-50", children: [jsx(SelectItem, { value: "0", children: "Always Stream" }), jsx(SelectItem, { value: "300", children: "300 chars" }), jsx(SelectItem, { value: "500", children: "500 chars" }), jsx(SelectItem, { value: "1000", children: "1K chars" }), jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsx(SelectItem, { value: "2000", children: "2K chars" }), jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxs("div", { className: "space-y-2", children: [jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxs("li", { children: ["\u2022 ", jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxs("li", { children: ["\u2022 ", jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxs("li", { children: ["\u2022 ", jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), showNewChatButton && (jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] }))] })] }) })), jsxs(CardContent, { className: "flex-1 overflow-y-auto p-0 space-y-4", children: [messages.length === 0 ? (jsxs("div", { className: "flex flex-col items-center justify-center flex-1 text-center space-y-4 p-4", children: [config.welcomeMessage && (jsxs(Fragment, { children: [jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsx(Bot, { className: "w-8 h-8 text-blue-500" }) }), jsxs("div", { children: [jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" }), jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage })] })] })), config.enableQuestions && (jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: questionsToUse, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions }))] })) : (jsxs("div", { className: "space-y-4 break-words p-4", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
+                                })() && (jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsx(SelectTrigger, { className: "w-40", children: jsx(SelectValue, {}) }), jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents?.().map((agent) => (jsx(SelectItem, { value: agent, children: jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsx(Bot, { className: "w-4 h-4" })) : (jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (firestoreConfig.showStreamingSelector ?? config.showStreamingSelector) && (jsx(TooltipProvider, { children: jsxs(Tooltip, { children: [jsx(TooltipTrigger, { asChild: true, children: jsxs("div", { className: "flex items-center gap-1", children: [jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsx(SelectTrigger, { className: "w-40", children: jsx(SelectValue, {}) }), jsxs(SelectContent, { className: "z-50", children: [jsx(SelectItem, { value: "0", children: "Always Stream" }), jsx(SelectItem, { value: "300", children: "300 chars" }), jsx(SelectItem, { value: "500", children: "500 chars" }), jsx(SelectItem, { value: "1000", children: "1K chars" }), jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsx(SelectItem, { value: "2000", children: "2K chars" }), jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxs("div", { className: "space-y-2", children: [jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxs("li", { children: ["\u2022 ", jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxs("li", { children: ["\u2022 ", jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxs("li", { children: ["\u2022 ", jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), showNewChatButton && (jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] }))] })] }) })), jsxs(CardContent, { className: "flex-1 overflow-y-auto p-0 space-y-4", children: [messages.length === 0 ? (jsxs("div", { className: config.uiVariant === 'rex'
+                            ? "flex flex-col items-center justify-center min-h-full text-center space-y-8 p-8"
+                            : "flex flex-col items-center justify-center flex-1 text-center space-y-4 p-4", children: [config.welcomeMessage && (jsxs(Fragment, { children: [config.uiVariant !== 'rex' && (jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsx(Bot, { className: "w-8 h-8 text-blue-500" }) })), jsxs("div", { children: [config.welcomeGreeting && config.uiVariant === 'rex' ? (jsx("h2", { className: "text-4xl font-normal text-gray-800 mb-4", children: config.welcomeGreeting })) : (jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" })), config.uiVariant !== 'rex' && (jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage }))] })] })), config.uiVariant === 'rex' && (jsx("div", { className: "w-full max-w-3xl", children: jsx(ChatInput, { onSendMessage: sendMessage, isLoading: isLoading, placeholder: config.placeholder, disabled: !provider || !!error, uiVariant: config.uiVariant, isEmptyState: true }) })), config.enableQuestions && (jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: questionsToUse, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions, hideShowMoreButton: config.hideShowMoreButton, uiVariant: config.uiVariant }))] })) : (jsxs("div", { className: "space-y-4 break-words p-4", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
                                 const isLastMessage = index === messages.length - 1;
                                 const shouldShowStreaming = isStreaming && isLastMessage && streamingMessage;
                                 return (jsx(MessageBubble, { message: message, streamingContent: shouldShowStreaming ? streamingMessage : undefined, debugStreaming: config.debugStreaming }, message.id));
@@ -36702,7 +36723,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                                     timestamp: new Date(),
                                 }, streamingContent: streamingMessage, debugStreaming: config.debugStreaming }))] })), error && (jsxs(Alert, { variant: "destructive", children: [jsx(CircleAlert, { className: "h-4 w-4" }), jsxs(AlertDescription, { className: "flex items-center justify-between", children: [jsx("span", { children: error }), jsxs(Button, { variant: "outline", size: "sm", onClick: handleRetry, children: [jsx(RefreshCw, { className: "w-3 h-3 mr-1" }), "Retry"] })] })] })), jsx("div", { ref: messagesEndRef })] }), config.showTimingInfo && lastResponse && (jsx(TimingInfo, { timings: lastResponse.timings || {}, agentName: selectedAgent, actualTotalTime: lastResponse.searchTime, tokenUsage: lastResponse.tokenUsage, cumulativeTokenUsage: cumulativeTokenUsage.responseCount > 0
                     ? cumulativeTokenUsage
-                    : undefined, streamingMetrics: lastResponse.streamingMetrics })), jsx(ChatInput, { onSendMessage: sendMessage, isLoading: isLoading, placeholder: config.placeholder, disabled: !provider || !!error })] }));
+                    : undefined, streamingMetrics: lastResponse.streamingMetrics })), (config.uiVariant !== 'rex' || messages.length > 0) && (jsx(ChatInput, { onSendMessage: sendMessage, isLoading: isLoading, placeholder: config.placeholder, disabled: !provider || !!error, uiVariant: config.uiVariant, isEmptyState: false }))] }));
 }
 // Display name for debugging
 AIChatbot.displayName = 'AIChatbot';
@@ -37060,7 +37081,11 @@ const defaultChatbotConfig = {
     availableAgents: ['askRex'],
     maxResults: 5,
     streamingThreshold: 300,
-    enableDynamicQuestions: true, maxInitialQuestions: 8,
+    enableDynamicQuestions: true,
+    maxInitialQuestions: 8,
+    uiVariant: 'default',
+    hideShowMoreButton: false,
+    welcomeGreeting: '',
     showTimingInfo: false,
     placeholder: 'Ask me anything about the course...',
 };
@@ -37081,6 +37106,9 @@ function mergeWithDefaults(userConfig) {
         maxResults: userConfig.maxResults ?? defaultChatbotConfig.maxResults,
         streamingThreshold: userConfig.streamingThreshold ?? defaultChatbotConfig.streamingThreshold,
         enableDynamicQuestions: userConfig.enableDynamicQuestions ?? defaultChatbotConfig.enableDynamicQuestions, maxInitialQuestions: userConfig.maxInitialQuestions ?? defaultChatbotConfig.maxInitialQuestions,
+        uiVariant: userConfig.uiVariant ?? defaultChatbotConfig.uiVariant,
+        hideShowMoreButton: userConfig.hideShowMoreButton ?? defaultChatbotConfig.hideShowMoreButton,
+        welcomeGreeting: userConfig.welcomeGreeting ?? defaultChatbotConfig.welcomeGreeting,
         showTimingInfo: userConfig.showTimingInfo ?? defaultChatbotConfig.showTimingInfo,
         placeholder: userConfig.placeholder ?? defaultChatbotConfig.placeholder,
     };
@@ -37368,6 +37396,9 @@ function Chatbot(props) {
         maxInitialQuestions: config.maxInitialQuestions,
         title: config.title,
         subtitle: config.subtitle,
+        uiVariant: config.uiVariant,
+        hideShowMoreButton: config.hideShowMoreButton,
+        welcomeGreeting: config.welcomeGreeting,
     }), [
         config.streamingThreshold,
         config.enableDynamicQuestions,
@@ -37376,6 +37407,9 @@ function Chatbot(props) {
         config.agentName, config.maxInitialQuestions,
         config.title,
         config.subtitle,
+        config.uiVariant,
+        config.hideShowMoreButton,
+        config.welcomeGreeting,
     ]);
     // Create callbacks
     const handleMessageSent = useMemo(() => {

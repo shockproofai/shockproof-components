@@ -90,6 +90,11 @@ export interface ChatbotConfig {
   showTimingInfo?: boolean;
   debugStreaming?: boolean;
   
+  // Rex-style UI variant
+  uiVariant?: 'default' | 'rex';
+  hideShowMoreButton?: boolean;
+  welcomeGreeting?: string;
+  
   // Questions configuration
   questions?: ChatQuestion[];
   maxInitialQuestions?: number;

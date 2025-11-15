@@ -176,6 +176,8 @@ interface DynamicQuestionsProps {
   questions?: ChatQuestion[];
   maxInitialQuestions?: number;
   fallbackQuestions?: ChatQuestion[]; // New prop for configurable fallback questions
+  hideShowMoreButton?: boolean; // New prop to hide show more button
+  uiVariant?: 'default' | 'rex'; // New prop for UI style variant
 }
 
 export { FALLBACK_QUESTIONS };
@@ -186,6 +188,8 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
   questions, // No default - undefined means loading
   maxInitialQuestions = 8, // Changed from 5 to 8 to match original (4x2 grid)
   fallbackQuestions = FALLBACK_QUESTIONS, // Use provided fallback or default
+  hideShowMoreButton = false, // Default to showing show more button
+  uiVariant = 'default', // Default to standard UI
 }) => {
   const [showMore, setShowMore] = useState(false);
 
@@ -224,6 +228,25 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
     const truncatedQuestion = truncateText(question.question);
     const isLongQuestion = question.question.length > 120;
 
+  // Rex-style pill button
+  if (uiVariant === 'rex') {
+      return (
+        <button
+          key={`${question.id}-${index}`}
+          onClick={() =>
+            onQuestionClick(question.question, {
+              contextHints: question.contextHints,
+            })
+          }
+          disabled={isLoading}
+          className="px-6 py-3 rounded-full border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+        >
+          {truncatedQuestion}
+        </button>
+      );
+    }
+
+    // Default style with tooltip
     const questionButton = (
       <Button
         key={`${question.id}-${index}`}
@@ -280,14 +303,62 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
 
   if (!questionsLoaded || (initialQuestions.length === 0 && additionalQuestions.length === 0)) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl animate-pulse">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-          <div key={i} className="h-12 bg-gray-200 rounded-md border" />
+      <div className={uiVariant === 'rex' ? "flex flex-wrap justify-center gap-3 max-w-2xl animate-pulse" : "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl animate-pulse"}>
+        {[1, 2, 3, 4, 5, 6, 7, 8].slice(0, maxInitialQuestions).map((i) => (
+          <div key={i} className={uiVariant === 'rex' ? "h-12 w-48 bg-gray-200 rounded-full" : "h-12 bg-gray-200 rounded-md border"} />
         ))}
       </div>
     );
   }
 
+  // Rex-style centered layout
+  if (uiVariant === 'rex') {
+    return (
+      <div className="flex flex-col items-center gap-3 max-w-2xl">
+        {/* Questions as centered pill buttons */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {initialQuestions.map((question, index) =>
+            renderQuestion(question, index)
+          )}
+        </div>
+
+        {/* Show More Button - only if not hidden and there are additional questions */}
+        {!hideShowMoreButton && additionalQuestions.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleMore}
+            disabled={isLoading}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          >
+            <Sparkles className="w-3 h-3 mr-2" />
+            {showMore ? (
+              <>
+                Show fewer questions
+                <ChevronUp className="w-3 h-3 ml-2" />
+              </>
+            ) : (
+              <>
+                Show more questions ({additionalQuestions.length})
+                <ChevronDown className="w-3 h-3 ml-2" />
+              </>
+            )}
+          </Button>
+        )}
+
+        {/* Additional Questions */}
+        {showMore && additionalQuestions.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-3 animate-in slide-in-from-top-2 duration-200">
+            {additionalQuestions.map((question, index) =>
+              renderQuestion(question, index + initialQuestions.length)
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default grid layout
   return (
     <TooltipProvider>
       <div className="max-w-4xl">
@@ -299,7 +370,7 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
         </div>
 
         {/* Show More Button */}
-        {additionalQuestions.length > 0 && (
+        {!hideShowMoreButton && additionalQuestions.length > 0 && (
           <div className="mt-4">
             <Button
               variant="ghost"

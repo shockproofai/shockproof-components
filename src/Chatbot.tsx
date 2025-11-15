@@ -359,6 +359,9 @@ export function Chatbot(props: ChatbotConfig) {
     maxInitialQuestions: config.maxInitialQuestions,
     title: config.title,
     subtitle: config.subtitle,
+    uiVariant: config.uiVariant,
+    hideShowMoreButton: config.hideShowMoreButton,
+    welcomeGreeting: config.welcomeGreeting,
   }), [
     config.streamingThreshold,
     config.enableDynamicQuestions,
@@ -367,6 +370,9 @@ export function Chatbot(props: ChatbotConfig) {
     config.agentName,    config.maxInitialQuestions,
     config.title,
     config.subtitle,
+    config.uiVariant,
+    config.hideShowMoreButton,
+    config.welcomeGreeting,
   ]);
 
   // Create callbacks

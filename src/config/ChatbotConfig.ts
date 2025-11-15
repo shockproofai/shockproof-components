@@ -140,4 +140,24 @@ export interface ChatbotConfig {
    * Set to false to hide the header and maximize chat area
    */
   showHeader?: boolean;
+
+  /**
+   * UI layout variant (optional, default: 'default')
+   * 'rex': Centered minimalist layout (Rex/Gemini-like)
+   * 'default': Standard left-aligned layout
+   */
+  uiVariant?: 'default' | 'rex';
+
+  /**
+   * Hide "Show More Questions" button (optional, default: false)
+   * Set to true for cleaner UI with fixed number of questions
+   */
+  hideShowMoreButton?: boolean;
+
+  /**
+   * Welcome greeting to show when chat is empty (optional)
+   * Example: "Hello, John" - shown in the 'rex' variant
+   */
+  welcomeGreeting?: string;
 }
+
