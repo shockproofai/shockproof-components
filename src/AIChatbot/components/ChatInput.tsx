@@ -49,8 +49,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Rex variant: broader, multiline, centered white input
   if (uiVariant === 'rex' && isEmptyState) {
     return (
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
-        <div className="relative flex items-end gap-2 p-4 bg-white rounded-full shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
+      <form onSubmit={handleSubmit} className="w-full mx-auto">
+        <div className="relative flex items-end gap-3 p-5 bg-white rounded-[28px] shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
           <Textarea
             ref={textareaRef}
             value={message}
@@ -58,14 +58,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={isLoading || disabled}
-            className="flex-1 min-h-[56px] max-h-40 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-base"
-            rows={1}
+            className="flex-1 min-h-[120px] max-h-60 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-white text-lg leading-relaxed"
+            rows={3}
           />
           <Button 
             type="submit" 
             disabled={!message.trim() || isLoading || disabled}
             size="icon"
-            className="rounded-full h-12 w-12 flex-shrink-0"
+            className="rounded-full h-12 w-12 flex-shrink-0 mb-1"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

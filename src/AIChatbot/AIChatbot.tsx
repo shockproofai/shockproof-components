@@ -345,52 +345,70 @@ export function AIChatbot({
           {/* Messages Area */}
           {messages.length === 0 ? (
             <div className={config.uiVariant === 'rex' 
-              ? "flex flex-col items-center justify-center min-h-full text-center space-y-8 p-8"
+              ? "flex flex-col items-center justify-center min-h-full space-y-8 p-8"
               : "flex flex-col items-center justify-center flex-1 text-center space-y-4 p-4"
             }>
-              {/* Welcome Message */}
-              {config.welcomeMessage && (
+              {/* Welcome Greeting for Rex variant */}
+              {config.welcomeGreeting && config.uiVariant === 'rex' && (
+                <h2 className="text-4xl font-normal text-gray-800">
+                  {config.welcomeGreeting}
+                </h2>
+              )}
+
+              {/* Welcome Message for Default variant */}
+              {config.welcomeMessage && config.uiVariant !== 'rex' && (
                 <>
-                  {config.uiVariant !== 'rex' && (
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
-                      <Bot className="w-8 h-8 text-blue-500" />
-                    </div>
-                  )}
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
+                    <Bot className="w-8 h-8 text-blue-500" />
+                  </div>
                   <div>
-                      {config.welcomeGreeting && config.uiVariant === 'rex' ? (
-                      <h2 className="text-4xl font-normal text-gray-800 mb-4">
-                        {config.welcomeGreeting}
-                      </h2>
-                      ) : (
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Welcome to Ask Rex!
-                      </h3>
-                    )}
-                      {config.uiVariant !== 'rex' && (
-                      <p className="text-gray-600 max-w-md mx-auto">
-                        {config.welcomeMessage}
-                      </p>
-                    )}
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Welcome to Ask Rex!
+                    </h3>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      {config.welcomeMessage}
+                    </p>
                   </div>
                 </>
               )}
               
-              {/* Rex variant: Input comes before questions */}
+              {/* Rex variant: Title, Input, then Questions */}
               {config.uiVariant === 'rex' && (
-                <div className="w-full max-w-3xl">
-                  <ChatInput
-                    onSendMessage={sendMessage}
-                    isLoading={isLoading}
-                    placeholder={config.placeholder}
-                    disabled={!provider || !!error}
-                    uiVariant={config.uiVariant}
-                    isEmptyState={true}
-                  />
-                </div>
+                <>
+                  {/* Input field with "Rex" title above it */}
+                  <div className="w-full max-w-2xl">
+                    {/* "Rex" title aligned to top-left of input */}
+                    <h1 className="text-4xl font-normal text-gray-900 mb-3 text-left">
+                      Rex
+                    </h1>
+                    
+                    <ChatInput
+                      onSendMessage={sendMessage}
+                      isLoading={isLoading}
+                      placeholder={config.placeholder}
+                      disabled={!provider || !!error}
+                      uiVariant={config.uiVariant}
+                      isEmptyState={true}
+                    />
+                  </div>
+
+                  {/* Questions below input */}
+                  {config.enableQuestions && (
+                    <DynamicQuestions
+                      onQuestionClick={handleQuestionClick}
+                      isLoading={isLoading}
+                      questions={questionsToUse}
+                      maxInitialQuestions={config.maxInitialQuestions}
+                      fallbackQuestions={config.fallbackQuestions}
+                      hideShowMoreButton={true}
+                      uiVariant={config.uiVariant}
+                    />
+                  )}
+                </>
               )}
               
-              {/* Dynamic Questions - Show below input for rex, below welcome for default */}
-              {config.enableQuestions && (
+              {/* Default variant: Questions below welcome */}
+              {config.enableQuestions && config.uiVariant !== 'rex' && (
                 <DynamicQuestions
                   onQuestionClick={handleQuestionClick}
                   isLoading={isLoading}
