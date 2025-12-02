@@ -1,0 +1,11 @@
+export { Chatbot } from './Chatbot';
+export type { ChatbotConfig } from './Chatbot';
+export { ChatService } from './services';
+export type { ChatServiceInterface } from './services';
+export { AIChatbot, createFirebaseProvider, useChatState, MessageBubble, ChatInput, TimingInfo, DynamicQuestions, BaseChatProvider } from './AIChatbot';
+export type { ChatbotConfig as AIChatbotConfig, ChatMessage, ChatResponse, ChatQuestion, ChatContext, TokenUsage, StreamingMetrics } from './AIChatbot';
+export { Auth } from './Auth/Auth';
+export { AuthProvider } from './Auth/providers/AuthProvider';
+export { AuthUI } from './Auth/components/AuthUI';
+export { useAuth } from './Auth/hooks/useAuth';
+export type { AuthConfig, AuthContextType } from './Auth/types';
