@@ -7,6 +7,10 @@ interface AuthUIProps {
   heading?: string;
   tagline?: string;
   badgeText?: string;
+  /** Custom success message shown after email link is sent. Use {email} as placeholder for the email address */
+  emailLinkSuccessMessage?: string;
+  /** Custom instruction text shown in the email sent success screen */
+  emailLinkSuccessInstructions?: string;
   /** Custom className for the outer container (removes default min-h-screen and gradient if provided) */
   containerClassName?: string;
   /** Custom className for the auth card */
@@ -23,6 +27,8 @@ export const AuthUI: React.FC<AuthUIProps> = ({
   heading = "Welcome to Shockproof AI",
   tagline = "Your intelligent AI assistant platform",
   badgeText = "Secure, passwordless authentication",
+  emailLinkSuccessMessage,
+  emailLinkSuccessInstructions,
   containerClassName,
   cardClassName,
   showFooter = true,
@@ -40,20 +46,27 @@ export const AuthUI: React.FC<AuthUIProps> = ({
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [isCompletingSignIn, setIsCompletingSignIn] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Check if this is an email link sign-in completion
   const needsEmailForCompletion = isEmailLinkSignIn() && error?.includes("email");
 
   const handleSendLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Also stop event propagation
     if (!email) return;
 
+    setIsSendingEmail(true);
     try {
       await sendEmailLink(email);
+      // Use callback form to ensure state update happens
       setEmailSent(true);
     } catch (err) {
       // Error is handled by AuthProvider
       console.error("Failed to send email link:", err);
+      // Don't set emailSent to true if there was an error
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -86,35 +99,46 @@ export const AuthUI: React.FC<AuthUIProps> = ({
     
   const finalCardClass = cardClassName || defaultCardClass;
 
-  // Email sent success screen
+  // Email sent success screen - render without outer container wrapper when custom className provided
   if (emailSent) {
+    const successContent = (
+      <div className={finalCardClass + " text-center"}>
+        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold mb-3">Check your email</h2>
+        <p className="text-muted-foreground mb-6">
+          {emailLinkSuccessMessage 
+            ? emailLinkSuccessMessage.replace('{email}', email)
+            : <>We've sent a magic link to <span className="font-semibold text-foreground">{email}</span></>
+          }
+        </p>
+        <p className="text-sm text-muted-foreground mb-6">
+          {emailLinkSuccessInstructions || "Click the link in the email to sign in. The link will expire in 60 minutes."}
+        </p>
+        <button
+          onClick={() => {
+            setEmailSent(false);
+            setEmail("");
+          }}
+          className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+        >
+          Use a different email
+        </button>
+      </div>
+    );
+
+    // If custom containerClassName provided, render directly without wrapper
+    if (containerClassName) {
+      return <div className={finalContainerClass}>{successContent}</div>;
+    }
+
+    // Otherwise, use the default full-page wrapper
     return (
       <div className={finalContainerClass}>
-        <div className="max-w-md w-full">
-          <div className={finalCardClass + " text-center"}>
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold mb-3">Check your email</h2>
-            <p className="text-muted-foreground mb-6">
-              We've sent a magic link to <span className="font-semibold">{email}</span>
-            </p>
-            <p className="text-sm text-muted-foreground mb-6">
-              Click the link in the email to sign in. The link will expire in 60 minutes.
-            </p>
-            <button
-              onClick={() => {
-                setEmailSent(false);
-                setEmail("");
-              }}
-              className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
-            >
-              Use a different email
-            </button>
-          </div>
-        </div>
+        <div className="max-w-md w-full">{successContent}</div>
       </div>
     );
   }
@@ -245,9 +269,10 @@ export const AuthUI: React.FC<AuthUIProps> = ({
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-gradient-primary text-primary-foreground font-semibold py-3 px-6 rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl"
+                    disabled={isSendingEmail}
+                    className="w-full bg-gradient-primary text-primary-foreground font-semibold py-3 px-6 rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Send sign-in link
+                    {isSendingEmail ? 'Sending...' : 'Send sign-in link'}
                   </button>
                 </form>
               </>

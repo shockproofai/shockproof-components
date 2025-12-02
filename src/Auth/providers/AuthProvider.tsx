@@ -22,6 +22,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   autoSignInAnonymously = false,
   enableEmailLink = false,
   onSendEmailLink,
+  onEmailLinkSent,
+  onEmailLinkError,
   emailLinkActionURL,
   emailLinkHandleCodeInApp = true,
   children,
@@ -112,7 +114,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   };
 
   const handleSendEmailLink = async (email: string) => {
-    setLoading(true);
+    // Don't set global loading state for email sending
+    // This prevents AuthGate from unmounting AuthUI
+    // setLoading(true);
     setError(null);
     try {
       const actionCodeSettings = {
@@ -131,16 +135,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       // Store email in localStorage for verification step
       window.localStorage.setItem("emailForSignIn", email);
 
-      // Don't call setLoading(false) - user needs to check email
-      setLoading(false); // Actually set false here since no auth state change yet
+      // Notify parent component of success
+      if (onEmailLinkSent) {
+        onEmailLinkSent(email);
+      }
+
+      // setLoading(false);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Failed to send sign-in link";
-      setError(errorMessage);
+      const error = err instanceof Error ? err : new Error("Failed to send sign-in link");
+      setError(error.message);
       console.error("Email link send error:", err);
-      setLoading(false);
+      
+      // Notify parent component of error
+      if (onEmailLinkError) {
+        onEmailLinkError(error);
+      }
+      
+      // setLoading(false);
+      // Re-throw the error so AuthUI knows it failed
+      throw error;
     }
   };
 

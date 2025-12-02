@@ -49,6 +49,18 @@ export interface AuthConfig {
   badgeText?: string;
 
   /**
+   * Custom success message shown after email link is sent
+   * @default "We've sent a magic link to {email}"
+   */
+  emailLinkSuccessMessage?: string;
+
+  /**
+   * Custom instruction text shown in the email sent success screen
+   * @default "Click the link in the email to sign in. The link will expire in 60 minutes."
+   */
+  emailLinkSuccessInstructions?: string;
+
+  /**
    * Optional callback to handle email sending for passwordless login
    * If not provided, Firebase's built-in sendSignInLinkToEmail will be used
    * 
@@ -56,6 +68,22 @@ export interface AuthConfig {
    * @returns Promise that resolves when email is sent
    */
   onSendEmailLink?: (email: string) => Promise<void>;
+
+  /**
+   * Callback when email link is successfully sent
+   * Useful for showing success notifications in the parent app
+   * 
+   * @param email - The email address the link was sent to
+   */
+  onEmailLinkSent?: (email: string) => void;
+
+  /**
+   * Callback when there's an error sending the email link
+   * Useful for showing error notifications in the parent app
+   * 
+   * @param error - The error that occurred
+   */
+  onEmailLinkError?: (error: Error) => void;
 
   /**
    * URL to redirect to after email link is clicked

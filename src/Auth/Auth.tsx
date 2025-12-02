@@ -17,8 +17,10 @@ const AuthGate: React.FC<{
   heading?: string;
   tagline?: string;
   badgeText?: string;
+  emailLinkSuccessMessage?: string;
+  emailLinkSuccessInstructions?: string;
   children: React.ReactNode;
-}> = ({ enableGoogle, enableEmailLink, heading, tagline, badgeText, children }) => {
+}> = ({ enableGoogle, enableEmailLink, heading, tagline, badgeText, emailLinkSuccessMessage, emailLinkSuccessInstructions, children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   // Show loading spinner while checking auth state
@@ -39,6 +41,8 @@ const AuthGate: React.FC<{
         heading={heading}
         tagline={tagline}
         badgeText={badgeText}
+        emailLinkSuccessMessage={emailLinkSuccessMessage}
+        emailLinkSuccessInstructions={emailLinkSuccessInstructions}
       />
     );
   }
@@ -77,7 +81,11 @@ export const Auth: React.FC<AuthProps> = ({
   heading,
   tagline,
   badgeText,
+  emailLinkSuccessMessage,
+  emailLinkSuccessInstructions,
   onSendEmailLink,
+  onEmailLinkSent,
+  onEmailLinkError,
   emailLinkActionURL,
   emailLinkHandleCodeInApp,
   children,
@@ -89,6 +97,8 @@ export const Auth: React.FC<AuthProps> = ({
       enableGoogle={enableGoogle}
       enableEmailLink={enableEmailLink}
       onSendEmailLink={onSendEmailLink}
+      onEmailLinkSent={onEmailLinkSent}
+      onEmailLinkError={onEmailLinkError}
       emailLinkActionURL={emailLinkActionURL}
       emailLinkHandleCodeInApp={emailLinkHandleCodeInApp}
     >
@@ -98,6 +108,8 @@ export const Auth: React.FC<AuthProps> = ({
         heading={heading}
         tagline={tagline}
         badgeText={badgeText}
+        emailLinkSuccessMessage={emailLinkSuccessMessage}
+        emailLinkSuccessInstructions={emailLinkSuccessInstructions}
       >
         {children}
       </AuthGate>

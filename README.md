@@ -91,9 +91,19 @@ function App() {
       firebaseApp={app}
       enableGoogle={true}
       enableEmailLink={true}
-      heading="Welcome to AskRex Knowledge Base"
-      tagline="Your intelligent assistant for commercial lending and credit analysis"
-      badgeText="Enterprise-grade security"
+      heading="Welcome to AskRex"
+      tagline="Your AI assistant for credit analysis"
+      badgeText="Secure authentication powered by Firebase"
+      emailLinkSuccessMessage="We've sent a magic link to {email}"
+      emailLinkSuccessInstructions="Click the link in the email to sign in. The link will expire in 60 minutes. Don't see it? Check your spam or junk folder."
+      onEmailLinkSent={(email) => {
+        console.log('Email sent to:', email);
+        // Optional: show your own notification
+      }}
+      onEmailLinkError={(error) => {
+        console.error('Failed to send email:', error);
+        // Optional: show error notification
+      }}
     >
       <YourAppContent />
     </Auth>
@@ -134,7 +144,7 @@ function App() {
 - **`emailLinkHandleCodeInApp?: boolean`**  
   Whether to handle the sign-in link in the same app (default: `true`).
 
-#### UI Customization (New in v2.4)
+#### UI Customization
 
 - **`heading?: string`**  
   Custom heading text for the auth UI (default: `"Welcome to Shockproof AI"`).  
@@ -147,6 +157,26 @@ function App() {
 - **`badgeText?: string`**  
   Custom badge text shown at the bottom of the auth card (default: `"Secure, passwordless authentication"`).  
   Typically highlights security or trust features.
+
+- **`emailLinkSuccessMessage?: string`**  
+  Custom success message shown after email link is sent (default: `"We've sent a magic link to {email}"`).  
+  Use `{email}` as a placeholder for the user's email address.  
+  Example: `"Check your inbox! We sent a magic link to {email}"`
+
+- **`emailLinkSuccessInstructions?: string`**  
+  Custom instruction text shown in the email sent success screen (default: `"Click the link in the email to sign in. The link will expire in 60 minutes."`).  
+  This is a good place to remind users to check their spam folder.  
+  Example: `"Click the link in the email to sign in. The link will expire in 60 minutes. Don't see it? Check your spam or junk folder."`
+
+#### Callbacks (New in v4.0+)
+
+- **`onEmailLinkSent?: (email: string) => void`**  
+  Callback fired when the email link is successfully sent.  
+  Use this to show custom notifications or track analytics.
+
+- **`onEmailLinkError?: (error: Error) => void`**  
+  Callback fired when there's an error sending the email link.  
+  Use this to show error messages or log failures.
 
 ### Hook and API
 
