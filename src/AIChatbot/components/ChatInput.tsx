@@ -9,7 +9,10 @@ interface ChatInputProps {
   placeholder?: string;
   disabled?: boolean;
   uiVariant?: 'default' | 'rex';
-  isEmptyState?: boolean; // Whether chat is in empty state (for rex variant centering)
+  formClassName?: string; // Custom className for form wrapper
+  containerClassName?: string; // Custom className for input container (use --chat-input-bg CSS variable to control background color)
+  textareaClassName?: string; // Custom className for textarea
+  buttonClassName?: string; // Custom className for submit button
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({ 
@@ -18,7 +21,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = "Ask a question...",
   disabled = false,
   uiVariant = 'default',
-  isEmptyState = false
+  formClassName,
+  containerClassName,
+  textareaClassName,
+  buttonClassName
 }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -46,11 +52,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   }, [message]);
 
-  // Rex variant: broader, multiline, centered white input
-  if (uiVariant === 'rex' && isEmptyState) {
+  // Rex variant: broader, multiline, rounded bordered input (both empty and non-empty states)
+  if (uiVariant === 'rex') {
     return (
-      <form onSubmit={handleSubmit} className="w-full mx-auto">
-        <div className="relative flex items-end gap-3 p-5 bg-white rounded-[28px] shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
+      <form onSubmit={handleSubmit} className={formClassName || "w-full mx-auto"}>
+        <div className={containerClassName || "relative flex items-end gap-3 p-5 rounded-[28px] border border-gray-200 transition-shadow bg-[var(--chat-input-bg,hsl(var(--input)))]"}>
           <Textarea
             ref={textareaRef}
             value={message}
@@ -58,14 +64,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={isLoading || disabled}
-            className="flex-1 min-h-[120px] max-h-60 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-white text-lg leading-relaxed"
+            className={textareaClassName || "flex-1 min-h-[120px] max-h-60 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed bg-transparent"}
             rows={3}
           />
           <Button 
             type="submit" 
             disabled={!message.trim() || isLoading || disabled}
             size="icon"
-            className="rounded-full h-12 w-12 flex-shrink-0 mb-1"
+            className={buttonClassName || "rounded-full h-12 w-12 flex-shrink-0 mb-1"}
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

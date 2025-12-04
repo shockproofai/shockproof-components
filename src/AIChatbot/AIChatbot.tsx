@@ -34,7 +34,11 @@ export function AIChatbot({
   loadSessionId,
   initialMessages,
   showNewChatButton = true,
-  showHeader = true
+  showHeader = true,
+  formClassName,
+  containerClassName,
+  textareaClassName,
+  buttonClassName
 }: AIChatbotProps) {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -388,7 +392,10 @@ export function AIChatbot({
                       placeholder={config.placeholder}
                       disabled={!provider || !!error}
                       uiVariant={config.uiVariant}
-                      isEmptyState={true}
+                      formClassName={formClassName}
+                      containerClassName={containerClassName}
+                      textareaClassName={textareaClassName}
+                      buttonClassName={buttonClassName}
                     />
                   </div>
 
@@ -494,7 +501,10 @@ export function AIChatbot({
           placeholder={config.placeholder}
           disabled={!provider || !!error}
           uiVariant={config.uiVariant}
-          isEmptyState={false}
+          formClassName={formClassName}
+          containerClassName={containerClassName}
+          textareaClassName={textareaClassName}
+          buttonClassName={buttonClassName}
         />
       )}
     </div>

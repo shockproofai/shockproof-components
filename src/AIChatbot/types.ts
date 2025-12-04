@@ -170,6 +170,12 @@ export interface AIChatbotProps {
   className?: string;
   style?: React.CSSProperties;
   
+  // ChatInput className customization
+  formClassName?: string; // Custom className for ChatInput form wrapper
+  containerClassName?: string; // Custom className for ChatInput container
+  textareaClassName?: string; // Custom className for ChatInput textarea
+  buttonClassName?: string; // Custom className for ChatInput button
+  
   // Authentication context (if needed)
   user?: {
     id: string;
