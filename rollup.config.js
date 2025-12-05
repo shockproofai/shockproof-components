@@ -36,9 +36,101 @@ export default [
         minimize: true,
       }),
     ],
-    external: ['react', 'react-dom', 'firebase'],
+    external: [
+      'react', 
+      'react-dom', 
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/functions',
+      'firebase/storage'
+    ],
     onwarn(warning, warn) {
       // Suppress "use client" directive warnings
+      if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+        return;
+      }
+      warn(warning);
+    },
+  },
+  
+  // Auth standalone build
+  {
+    input: 'src/Auth/index.ts',
+    output: [
+      {
+        file: 'dist/Auth/index.js',
+        format: 'cjs',
+        sourcemap: true,
+        banner: '"use client";',
+      },
+      {
+        file: 'dist/Auth/index.esm.js',
+        format: 'esm',
+        sourcemap: true,
+        banner: '"use client";',
+      },
+    ],
+    plugins: [
+      peerDepsExternal(),
+      resolve(),
+      commonjs(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: false,
+      }),
+    ],
+    external: [
+      'react', 
+      'react-dom', 
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/functions'
+    ],
+    onwarn(warning, warn) {
+      if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+        return;
+      }
+      warn(warning);
+    },
+  },
+  
+  // Chatbot standalone build
+  {
+    input: 'src/Chatbot.tsx',
+    output: [
+      {
+        file: 'dist/Chatbot/index.js',
+        format: 'cjs',
+        sourcemap: true,
+        banner: '"use client";',
+      },
+      {
+        file: 'dist/Chatbot/index.esm.js',
+        format: 'esm',
+        sourcemap: true,
+        banner: '"use client";',
+      },
+    ],
+    plugins: [
+      peerDepsExternal(),
+      resolve(),
+      commonjs(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: false,
+      }),
+    ],
+    external: [
+      'react', 
+      'react-dom', 
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/functions'
+    ],
+    onwarn(warning, warn) {
       if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
         return;
       }
@@ -72,7 +164,14 @@ export default [
         declaration: false,
       }),
     ],
-    external: ['react', 'react-dom', 'firebase'],
+    external: [
+      'react', 
+      'react-dom', 
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/functions'
+    ],
     onwarn(warning, warn) {
       // Suppress "use client" directive warnings
       if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {

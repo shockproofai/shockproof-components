@@ -12,10 +12,15 @@
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./Auth": {
+      "import": "./dist/Auth/index.esm.js",
+      "require": "./dist/Auth/index.js",
+      "types": "./dist/Auth/index.d.ts"
+    },
     "./Chatbot": {
-      "import": "./dist/Chatbot.esm.js",
-      "require": "./dist/Chatbot.js",
-      "types": "./dist/Chatbot.d.ts"
+      "import": "./dist/Chatbot/index.esm.js",
+      "require": "./dist/Chatbot/index.js",
+      "types": "./dist/Chatbot/index.d.ts"
     },
     "./AIChatbot": {
       "import": "./dist/AIChatbot/index.esm.js",
