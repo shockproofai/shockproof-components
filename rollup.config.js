@@ -77,7 +77,9 @@ export default [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: false,
+        declaration: true,
+        declarationDir: './dist/Auth',
+        rootDir: './src/Auth',
       }),
     ],
     external: [
@@ -119,7 +121,9 @@ export default [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: false,
+        declaration: true,
+        declarationDir: './dist/Chatbot',
+        rootDir: './src',
       }),
     ],
     external: [
