@@ -34,30 +34,24 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <div
       className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} mb-4 items-start`}
     >
-      {/* Avatar */}
-      <div
-        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-          isUser ? "bg-blue-500" : "bg-gray-200"
-        }`}
-      >
-        {isUser ? (
-          <User className="w-4 h-4 text-white" />
-        ) : (
-          <Bot className="w-4 h-4 text-gray-600" />
-        )}
-      </div>
+      {/* Shockproof icon for assistant messages only */}
+      {!isUser && (
+        <img 
+          src="/shockproof-icon.png" 
+          alt="Rex" 
+          className="flex-shrink-0 w-8 h-8"
+        />
+      )}
 
       {/* Message Content */}
       <div className={`flex-1 min-w-0 ${isUser ? "flex justify-end" : ""}`}>
         <div className={`${isUser ? "inline-flex flex-col" : "w-full"}`}>
           <Card
-            className={`p-3 ${
-              isUser ? "inline-block" : (streamingContent ? "w-full" : "max-w-[95%]")
-            } min-w-0 break-words ${
+            className={`${
               isUser 
-                ? "bg-blue-100 text-blue-900 border border-blue-200" 
-                : "bg-white text-gray-900 border-gray-200"
-            }`}
+                ? "p-3 inline-block bg-blue-100 text-blue-900 border border-blue-200"
+                : "p-0 bg-transparent border-0"
+            } ${isUser ? "inline-block" : (streamingContent ? "w-full" : "max-w-[95%]")} min-w-0 break-words`}
             style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}
           >
             {/* Message Text */}
