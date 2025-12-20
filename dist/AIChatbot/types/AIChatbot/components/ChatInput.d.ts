@@ -5,7 +5,10 @@ interface ChatInputProps {
     placeholder?: string;
     disabled?: boolean;
     uiVariant?: 'default' | 'rex';
-    isEmptyState?: boolean;
+    formClassName?: string;
+    containerClassName?: string;
+    textareaClassName?: string;
+    buttonClassName?: string;
 }
 export declare const ChatInput: React.FC<ChatInputProps>;
 export {};

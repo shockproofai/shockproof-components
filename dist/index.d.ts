@@ -505,6 +505,10 @@ interface AIChatbotProps {
     onSessionEnd?: (sessionId: string) => void;
     className?: string;
     style?: React.CSSProperties;
+    formClassName?: string;
+    containerClassName?: string;
+    textareaClassName?: string;
+    buttonClassName?: string;
     user?: {
         id: string;
         email?: string;
@@ -553,7 +557,7 @@ interface FirebaseProviderConfig {
  * This component provides a complete chat interface that can work with
  * any provider implementation (Firebase, REST API, etc.)
  */
-declare function AIChatbot({ provider, config, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className, style, user, userId, saveSessionHistory, loadSessionId, initialMessages, showNewChatButton, showHeader }: AIChatbotProps): react_jsx_runtime.JSX.Element;
+declare function AIChatbot({ provider, config, onMessageSent, onMessageReceived, onError, onSessionStart, onSessionEnd, className, style, user, userId, saveSessionHistory, loadSessionId, initialMessages, showNewChatButton, showHeader, formClassName, containerClassName, textareaClassName, buttonClassName }: AIChatbotProps): react_jsx_runtime.JSX.Element;
 declare namespace AIChatbot {
     var displayName: string;
 }
@@ -702,7 +706,10 @@ interface ChatInputProps {
     placeholder?: string;
     disabled?: boolean;
     uiVariant?: 'default' | 'rex';
-    isEmptyState?: boolean;
+    formClassName?: string;
+    containerClassName?: string;
+    textareaClassName?: string;
+    buttonClassName?: string;
 }
 declare const ChatInput: React$1.FC<ChatInputProps>;
 

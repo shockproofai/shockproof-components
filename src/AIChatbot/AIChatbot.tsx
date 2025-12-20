@@ -344,12 +344,12 @@ export function AIChatbot({
       )}
 
       {/* Messages */}
-      <CardContent className="flex-1 overflow-y-auto p-0 space-y-4">
+      <CardContent className="flex-1 overflow-hidden p-0 space-y-4">
           
           {/* Messages Area */}
           {messages.length === 0 ? (
             <div className={config.uiVariant === 'rex' 
-              ? "flex flex-col items-center justify-center min-h-full space-y-8 p-8"
+              ? "flex flex-col items-center justify-center h-full space-y-8 p-8"
               : "flex flex-col items-center justify-center flex-1 text-center space-y-4 p-4"
             }>
               {/* Welcome Greeting for Rex variant */}
@@ -428,7 +428,7 @@ export function AIChatbot({
               )}
             </div>
           ) : (
-            <div className="space-y-4 break-words p-4" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
+            <div className="space-y-4 break-words p-4 overflow-y-auto" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
               {messages.map((message, index) => {
                 const isLastMessage = index === messages.length - 1;
                 const shouldShowStreaming = isStreaming && isLastMessage && streamingMessage;

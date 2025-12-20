@@ -29,7 +29,9 @@ export default [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: false,
+        declaration: true,
+        declarationDir: './dist/types',
+        outDir: './dist',
       }),
       postcss({
         extract: 'styles.css',
@@ -165,7 +167,9 @@ export default [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: false,
+        declaration: true,
+        declarationDir: './dist/AIChatbot/types',
+        outDir: './dist/AIChatbot',
       }),
     ],
     external: [
@@ -185,11 +189,17 @@ export default [
     },
   },
   
-  // Type definitions - temporarily disabled
-  // {
-  //   input: 'dist/esm/types/index.d.ts',
-  //   output: [{ file: 'dist/index.d.ts', format: 'esm' }],
-  //   plugins: [dts()],
-  //   external: [/\.css$/],
-  // },
+  // Type definitions
+  {
+    input: 'dist/types/index.d.ts',
+    output: [{ file: 'dist/index.d.ts', format: 'esm' }],
+    plugins: [dts()],
+    external: [/\.css$/],
+  },
+  {
+    input: 'dist/AIChatbot/types/index.d.ts',
+    output: [{ file: 'dist/AIChatbot/index.d.ts', format: 'esm' }],
+    plugins: [dts()],
+    external: [/\.css$/],
+  },
 ];

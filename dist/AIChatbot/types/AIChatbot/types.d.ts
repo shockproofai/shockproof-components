@@ -120,6 +120,10 @@ export interface AIChatbotProps {
     onSessionEnd?: (sessionId: string) => void;
     className?: string;
     style?: React.CSSProperties;
+    formClassName?: string;
+    containerClassName?: string;
+    textareaClassName?: string;
+    buttonClassName?: string;
     user?: {
         id: string;
         email?: string;
