@@ -53,9 +53,8 @@
   flex-direction: column;
 }
 
-/* Ensure chatbot component fills space without creating scrollbars */
+/* Allow chatbot component to manage its own overflow */
 .chat-main > * {
   height: 100%;
   width: 100%;
-  overflow: hidden;
 }

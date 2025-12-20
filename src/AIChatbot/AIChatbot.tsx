@@ -344,7 +344,7 @@ export function AIChatbot({
       )}
 
       {/* Messages */}
-      <CardContent className="flex-1 overflow-hidden p-0 space-y-4">
+      <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
           
           {/* Messages Area */}
           {messages.length === 0 ? (
@@ -428,7 +428,8 @@ export function AIChatbot({
               )}
             </div>
           ) : (
-            <div className="space-y-4 break-words p-4 overflow-y-auto" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-4 break-words" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
               {messages.map((message, index) => {
                 const isLastMessage = index === messages.length - 1;
                 const shouldShowStreaming = isStreaming && isLastMessage && streamingMessage;
@@ -457,6 +458,7 @@ export function AIChatbot({
                   debugStreaming={config.debugStreaming}
                 />
               )}
+              </div>
             </div>
           )}
 
