@@ -64,8 +64,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={isLoading || disabled}
-            className={textareaClassName || "flex-1 min-h-[120px] max-h-60 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed bg-transparent"}
-            rows={3}
+            className={textareaClassName || "flex-1 min-h-[56px] max-h-60 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed bg-transparent md:min-h-[80px]"}
+            rows={1}
           />
           <Button 
             type="submit" 
