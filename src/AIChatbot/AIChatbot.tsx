@@ -226,7 +226,7 @@ export function AIChatbot({
   
   return (
     <div 
-      className={`flex flex-col h-full max-h-screen ${className}`}
+      className={`flex flex-col h-full max-h-screen pb-4 ${className}`}
       style={style}
       data-theme={config.theme || 'auto'}
     >
