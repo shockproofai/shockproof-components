@@ -49,7 +49,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <Card
             className={`${
               isUser 
-                ? "p-3 inline-block bg-blue-100 text-blue-900 border border-blue-200"
+                ? "px-3 py-2 inline-block bg-blue-100 text-blue-900 border border-blue-200"
                 : "p-0 bg-transparent border-0"
             } ${isUser ? "inline-block" : (streamingContent ? "w-full" : "max-w-[95%]")} min-w-0 break-words`}
             style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}

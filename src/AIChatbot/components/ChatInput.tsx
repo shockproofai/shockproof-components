@@ -55,7 +55,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Rex variant: broader, multiline, rounded bordered input (both empty and non-empty states)
   if (uiVariant === 'rex') {
     return (
-      <form onSubmit={handleSubmit} className={formClassName || "w-full mx-auto"}>
+      <form onSubmit={handleSubmit} className={formClassName || "w-full mx-auto px-5 pb-5"}>
         <div className={containerClassName || "relative flex items-end gap-3 p-5 rounded-[28px] border border-gray-200 transition-shadow bg-[var(--chat-input-bg,hsl(var(--input)))]"}>
           <Textarea
             ref={textareaRef}
