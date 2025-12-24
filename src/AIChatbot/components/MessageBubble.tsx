@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "../../shared/components/ui/card";
 import { Badge } from "../../shared/components/ui/badge";
-import { Bot, User } from "lucide-react";
+import { Bot, User, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ChatMessage } from "../types";
@@ -20,6 +20,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const isUser = message.role === "user";
   const isLoading = message.isLoading;
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      const textToCopy = typeof message.content === 'string' ? message.content : String(message.content || '');
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 5000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
 
   // Debug logging
   if (debugStreaming) {
@@ -32,17 +44,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   return (
     <div
-      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} mb-4 items-start`}
+      className={`${isUser ? "flex gap-3 flex-row-reverse items-start" : ""} mb-4`}
     >
-      {/* Shockproof icon for assistant messages only */}
-      {!isUser && (
-        <img 
-          src="/shockproof-icon.png" 
-          alt="Rex" 
-          className="flex-shrink-0 w-8 h-8"
-        />
-      )}
-
       {/* Message Content */}
       <div className={`flex-1 min-w-0 ${isUser ? "flex justify-end" : ""}`}>
         <div className={`${isUser ? "inline-flex flex-col" : "w-full"}`}>
@@ -68,8 +71,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       ),
                     }}
                   />
-                  {/* Streaming indicator */}
-                  <div className="flex items-center gap-2 mt-2">
+                    {/* Streaming indicator */}
+                    <div className="flex items-center gap-2 mt-2">
                     <svg
                       className="animate-spin h-4 w-4 text-blue-500"
                       xmlns="http://www.w3.org/2000/svg"
@@ -90,8 +93,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                         d="M4 12a8 8 0 018-8v8z"
                       ></path>
                     </svg>
-                    <span className="text-xs text-blue-500">Streaming response...</span>
-                  </div>
+                      <span className="text-xs text-blue-500">Streaming response...</span>
+                    </div>
                 </div>
               ) : (
                 // Show loading spinner when no streaming content yet
@@ -170,10 +173,24 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
           )}
 
-          {/* Timestamp */}
+          {/* Timestamp with Copy Button for Assistant Messages */}
           {message.timestamp && (
-            <div className={`text-xs text-gray-400 mt-1 ${isUser ? "text-right" : "text-left"}`}>
-              {new Date(message.timestamp).toLocaleString()}
+            <div className={`flex items-center gap-2 text-xs text-gray-400 mt-1 ${isUser ? "justify-end" : "justify-start"}`}>
+              {!isUser && !isLoading && (
+                <button
+                  onClick={handleCopy}
+                  className="hover:text-gray-600 transition-colors"
+                  aria-label="Copy response"
+                  title="Copy"
+                >
+                  {copied ? (
+                    <Check className="w-3 h-3 text-green-500" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
+                </button>
+              )}
+              <span>{new Date(message.timestamp).toLocaleString()}</span>
             </div>
           )}
         </div>
