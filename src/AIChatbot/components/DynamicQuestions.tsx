@@ -239,7 +239,7 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
             })
           }
           disabled={isLoading}
-          className="px-6 py-3 rounded-full border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+          className="px-6 py-3 rounded-full bg-white hover:bg-gray-200 transition-all duration-200 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {truncatedQuestion}
         </button>
@@ -315,6 +315,9 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
   if (uiVariant === 'rex') {
     return (
       <div className="flex flex-col items-center gap-3 max-w-2xl">
+        {/* Static header text */}
+        <p className="text-sm text-gray-600 font-medium">Try one of these questions:</p>
+        
         {/* Questions as centered pill buttons */}
         <div className="flex flex-wrap justify-center gap-3">
           {initialQuestions.map((question, index) =>

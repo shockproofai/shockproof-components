@@ -344,12 +344,12 @@ export function AIChatbot({
       )}
 
       {/* Messages */}
-      <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
+      <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-background relative">
           
           {/* Messages Area */}
           {messages.length === 0 ? (
             <div className={config.uiVariant === 'rex' 
-              ? "flex flex-col items-center justify-center h-full space-y-8 p-8"
+              ? "flex flex-col items-center justify-center h-full space-y-4 p-8"
               : "flex flex-col items-center justify-center flex-1 text-center space-y-4 p-4"
             }>
               {/* Welcome Greeting for Rex variant */}
@@ -428,8 +428,8 @@ export function AIChatbot({
               )}
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-              <div className="space-y-4 break-words" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide bg-background">
+              <div className="space-y-4 break-words pb-8" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
               {messages.map((message, index) => {
                 const isLastMessage = index === messages.length - 1;
                 const shouldShowStreaming = isStreaming && isLastMessage && streamingMessage;
@@ -477,6 +477,16 @@ export function AIChatbot({
           )}
 
         <div ref={messagesEndRef} />
+        
+        {/* Gradient overlay at bottom - only when messages exist */}
+        {messages.length > 0 && (
+          <div 
+            className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 z-10"
+            style={{
+              background: 'linear-gradient(to bottom, transparent, hsl(var(--background)))'
+            }}
+          />
+        )}
       </CardContent>
 
       {/* Timing Information */}
