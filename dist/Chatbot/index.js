@@ -2988,6 +2988,381 @@ function Badge({ className, variant, ...props }) {
     return (jsxRuntime.jsx("div", { className: cn(badgeVariants({ variant }), className), ...props }));
 }
 
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+const toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const mergeClasses = (...classes) => classes.filter((className, index, array) => {
+  return Boolean(className) && array.indexOf(className) === index;
+}).join(" ");
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+var defaultAttributes = {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: 24,
+  height: 24,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+};
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Icon$1 = React.forwardRef(
+  ({
+    color = "currentColor",
+    size = 24,
+    strokeWidth = 2,
+    absoluteStrokeWidth,
+    className = "",
+    children,
+    iconNode,
+    ...rest
+  }, ref) => {
+    return React.createElement(
+      "svg",
+      {
+        ref,
+        ...defaultAttributes,
+        width: size,
+        height: size,
+        stroke: color,
+        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
+        className: mergeClasses("lucide", className),
+        ...rest
+      },
+      [
+        ...iconNode.map(([tag, attrs]) => React.createElement(tag, attrs)),
+        ...Array.isArray(children) ? children : [children]
+      ]
+    );
+  }
+);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const createLucideIcon = (iconName, iconNode) => {
+  const Component = React.forwardRef(
+    ({ className, ...props }, ref) => React.createElement(Icon$1, {
+      ref,
+      iconNode,
+      className: mergeClasses(`lucide-${toKebabCase(iconName)}`, className),
+      ...props
+    })
+  );
+  Component.displayName = `${iconName}`;
+  return Component;
+};
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const BarChart3 = createLucideIcon("BarChart3", [
+  ["path", { d: "M3 3v18h18", key: "1s2lah" }],
+  ["path", { d: "M18 17V9", key: "2bz60n" }],
+  ["path", { d: "M13 17V5", key: "1frdt8" }],
+  ["path", { d: "M8 17v-3", key: "17ska0" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Bot = createLucideIcon("Bot", [
+  ["path", { d: "M12 8V4H8", key: "hb8ula" }],
+  ["rect", { width: "16", height: "12", x: "4", y: "8", rx: "2", key: "enze0r" }],
+  ["path", { d: "M2 14h2", key: "vft8re" }],
+  ["path", { d: "M20 14h2", key: "4cs60a" }],
+  ["path", { d: "M15 13v2", key: "1xurst" }],
+  ["path", { d: "M9 13v2", key: "rq6x2g" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Check = createLucideIcon("Check", [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const ChevronDown = createLucideIcon("ChevronDown", [
+  ["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const ChevronUp = createLucideIcon("ChevronUp", [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const CircleAlert = createLucideIcon("CircleAlert", [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
+  ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Clock = createLucideIcon("Clock", [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["polyline", { points: "12 6 12 12 16 14", key: "68esgv" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Copy = createLucideIcon("Copy", [
+  ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
+  ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Database = createLucideIcon("Database", [
+  ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
+  ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
+  ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Hash = createLucideIcon("Hash", [
+  ["line", { x1: "4", x2: "20", y1: "9", y2: "9", key: "4lhtct" }],
+  ["line", { x1: "4", x2: "20", y1: "15", y2: "15", key: "vyu0kd" }],
+  ["line", { x1: "10", x2: "8", y1: "3", y2: "21", key: "1ggp8o" }],
+  ["line", { x1: "16", x2: "14", y1: "3", y2: "21", key: "weycgp" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Info$1 = createLucideIcon("Info", [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["path", { d: "M12 16v-4", key: "1dtifu" }],
+  ["path", { d: "M12 8h.01", key: "e9boi3" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Layers = createLucideIcon("Layers", [
+  [
+    "path",
+    {
+      d: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z",
+      key: "8b97xw"
+    }
+  ],
+  ["path", { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65", key: "dd6zsq" }],
+  ["path", { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65", key: "ep9fru" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const LoaderCircle = createLucideIcon("LoaderCircle", [
+  ["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Package = createLucideIcon("Package", [
+  ["path", { d: "m7.5 4.27 9 5.15", key: "1c824w" }],
+  [
+    "path",
+    {
+      d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z",
+      key: "hh9hay"
+    }
+  ],
+  ["path", { d: "m3.3 7 8.7 5 8.7-5", key: "g66t2b" }],
+  ["path", { d: "M12 22V12", key: "d0xqtd" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Radio = createLucideIcon("Radio", [
+  ["path", { d: "M4.9 19.1C1 15.2 1 8.8 4.9 4.9", key: "1vaf9d" }],
+  ["path", { d: "M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5", key: "u1ii0m" }],
+  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }],
+  ["path", { d: "M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5", key: "1j5fej" }],
+  ["path", { d: "M19.1 4.9C23 8.8 23 15.1 19.1 19", key: "10b0cb" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const RefreshCw = createLucideIcon("RefreshCw", [
+  ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
+  ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
+  ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
+  ["path", { d: "M8 16H3v5", key: "1cv678" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Send = createLucideIcon("Send", [
+  ["path", { d: "m22 2-7 20-4-9-9-4Z", key: "1q3vgg" }],
+  ["path", { d: "M22 2 11 13", key: "nzbqef" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Sparkles = createLucideIcon("Sparkles", [
+  [
+    "path",
+    {
+      d: "M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z",
+      key: "4pj2yx"
+    }
+  ],
+  ["path", { d: "M20 3v4", key: "1olli1" }],
+  ["path", { d: "M22 5h-4", key: "1gvqau" }],
+  ["path", { d: "M4 17v2", key: "vumght" }],
+  ["path", { d: "M5 18H3", key: "zchphs" }]
+]);
+
+/**
+ * @license lucide-react v0.400.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Zap = createLucideIcon("Zap", [
+  [
+    "path",
+    {
+      d: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
+      key: "1xq2db"
+    }
+  ]
+]);
+
 function ok$1() {}
 
 function unreachable() {}
@@ -3166,7 +3541,7 @@ function normalize$1(value) {
  */
 
 /** @type {InfoType} */
-let Info$1 = class Info {
+class Info {
   /**
    * @param {string} property
    *   Property.
@@ -3179,20 +3554,20 @@ let Info$1 = class Info {
     this.attribute = attribute;
     this.property = property;
   }
-};
+}
 
-Info$1.prototype.attribute = '';
-Info$1.prototype.booleanish = false;
-Info$1.prototype.boolean = false;
-Info$1.prototype.commaOrSpaceSeparated = false;
-Info$1.prototype.commaSeparated = false;
-Info$1.prototype.defined = false;
-Info$1.prototype.mustUseProperty = false;
-Info$1.prototype.number = false;
-Info$1.prototype.overloadedBoolean = false;
-Info$1.prototype.property = '';
-Info$1.prototype.spaceSeparated = false;
-Info$1.prototype.space = undefined;
+Info.prototype.attribute = '';
+Info.prototype.booleanish = false;
+Info.prototype.boolean = false;
+Info.prototype.commaOrSpaceSeparated = false;
+Info.prototype.commaSeparated = false;
+Info.prototype.defined = false;
+Info.prototype.mustUseProperty = false;
+Info.prototype.number = false;
+Info.prototype.overloadedBoolean = false;
+Info.prototype.property = '';
+Info.prototype.spaceSeparated = false;
+Info.prototype.space = undefined;
 
 let powers = 0;
 
@@ -3228,7 +3603,7 @@ const checks = /** @type {ReadonlyArray<keyof typeof types>} */ (
   Object.keys(types)
 );
 
-class DefinedInfo extends Info$1 {
+class DefinedInfo extends Info {
   /**
    * @constructor
    * @param {string} property
@@ -4376,7 +4751,7 @@ const valid = /^data[-\w.:]+$/i;
 function find(schema, value) {
   const normal = normalize$1(value);
   let property = value;
-  let Type = Info$1;
+  let Type = Info;
 
   if (normal in schema.normal) {
     return schema.property[schema.normal[normal]]
@@ -29723,6 +30098,18 @@ const MessageBubble = ({ message, streamingContent, debugStreaming = false }) =>
     const isUser = message.role === "user";
     const isLoading = message.isLoading;
     const [sourcesExpanded, setSourcesExpanded] = React.useState(false);
+    const [copied, setCopied] = React.useState(false);
+    const handleCopy = async () => {
+        try {
+            const textToCopy = typeof message.content === 'string' ? message.content : String(message.content || '');
+            await navigator.clipboard.writeText(textToCopy);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 5000);
+        }
+        catch (err) {
+            console.error('Failed to copy text:', err);
+        }
+    };
     // Debug logging
     if (debugStreaming) {
         console.log(`[${new Date().toISOString()}] 🎨 MessageBubble render:`, {
@@ -29731,19 +30118,19 @@ const MessageBubble = ({ message, streamingContent, debugStreaming = false }) =>
             streamingContentPreview: streamingContent ? streamingContent.substring(0, 50) + '...' : 'none'
         });
     }
-    return (jsxRuntime.jsxs("div", { className: `flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} mb-4 items-start`, children: [!isUser && (jsxRuntime.jsx("img", { src: "/shockproof-icon.png", alt: "Rex", className: "flex-shrink-0 w-8 h-8" })), jsxRuntime.jsx("div", { className: `flex-1 min-w-0 ${isUser ? "flex justify-end" : ""}`, children: jsxRuntime.jsxs("div", { className: `${isUser ? "inline-flex flex-col" : "w-full"}`, children: [jsxRuntime.jsx(Card, { className: `${isUser
-                                ? "px-3 py-2 inline-block bg-blue-100 text-blue-900 border border-blue-200"
-                                : "p-0 bg-transparent border-0"} ${isUser ? "inline-block" : (streamingContent ? "w-full" : "max-w-[95%]")} min-w-0 break-words`, style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: isLoading ? (streamingContent ? (
-                            // Show streaming content in the main message area
-                            jsxRuntime.jsxs("div", { className: "prose prose-sm prose-slate max-w-none break-words prose-headings:font-semibold prose-headings:text-gray-900 prose-p:my-2 prose-p:leading-relaxed prose-pre:bg-gray-100 prose-pre:border prose-pre:border-gray-200 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-table:text-sm prose-th:bg-gray-50 prose-th:border prose-th:border-gray-200 prose-td:border prose-td:border-gray-200", children: [jsxRuntime.jsx(Markdown, { children: typeof streamingContent === 'string' ? streamingContent : String(streamingContent || ''), remarkPlugins: [remarkGfm], components: {
-                                            a: (props) => (jsxRuntime.jsx("a", { ...props, target: "_blank", rel: "noopener noreferrer" })),
-                                        } }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2 mt-2", children: [jsxRuntime.jsxs("svg", { className: "animate-spin h-4 w-4 text-blue-500", xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", children: [jsxRuntime.jsx("circle", { className: "opacity-25", cx: "12", cy: "12", r: "10", stroke: "currentColor", strokeWidth: "4" }), jsxRuntime.jsx("path", { className: "opacity-75", fill: "currentColor", d: "M4 12a8 8 0 018-8v8z" })] }), jsxRuntime.jsx("span", { className: "text-xs text-blue-500", children: "Streaming response..." })] })] })) : (
-                            // Show loading spinner when no streaming content yet
-                            jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [jsxRuntime.jsxs("svg", { className: "animate-spin h-5 w-5 text-blue-500", xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", children: [jsxRuntime.jsx("circle", { className: "opacity-25", cx: "12", cy: "12", r: "10", stroke: "currentColor", strokeWidth: "4" }), jsxRuntime.jsx("path", { className: "opacity-75", fill: "currentColor", d: "M4 12a8 8 0 018-8v8z" })] }), jsxRuntime.jsx("span", { className: "text-sm text-gray-600", children: "Thinking..." })] }))) : (
-                            // Show final message content
-                            jsxRuntime.jsx("div", { className: "prose prose-sm prose-slate max-w-none break-words prose-headings:font-semibold prose-headings:text-gray-900 prose-p:my-2 prose-p:leading-relaxed prose-pre:bg-gray-100 prose-pre:border prose-pre:border-gray-200 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-table:text-sm prose-th:bg-gray-50 prose-th:border prose-th:border-gray-200 prose-td:border prose-td:border-gray-200", children: jsxRuntime.jsx(Markdown, { children: typeof message.content === 'string' ? message.content : String(message.content || ''), remarkPlugins: [remarkGfm], components: {
+    return (jsxRuntime.jsx("div", { className: `${isUser ? "flex gap-3 flex-row-reverse items-start" : ""} mb-4`, children: jsxRuntime.jsx("div", { className: `flex-1 min-w-0 ${isUser ? "flex justify-end" : ""}`, children: jsxRuntime.jsxs("div", { className: `${isUser ? "inline-flex flex-col" : "w-full"}`, children: [jsxRuntime.jsx(Card, { className: `${isUser
+                            ? "px-3 py-2 inline-block bg-blue-100 text-blue-900 border border-blue-200"
+                            : "p-0 bg-transparent border-0"} ${isUser ? "inline-block" : (streamingContent ? "w-full" : "max-w-[95%]")} min-w-0 break-words`, style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: isLoading ? (streamingContent ? (
+                        // Show streaming content in the main message area
+                        jsxRuntime.jsxs("div", { className: "prose prose-sm prose-slate max-w-none break-words prose-headings:font-semibold prose-headings:text-gray-900 prose-p:my-2 prose-p:leading-relaxed prose-pre:bg-gray-100 prose-pre:border prose-pre:border-gray-200 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-table:text-sm prose-th:bg-gray-50 prose-th:border prose-th:border-gray-200 prose-td:border prose-td:border-gray-200", children: [jsxRuntime.jsx(Markdown, { children: typeof streamingContent === 'string' ? streamingContent : String(streamingContent || ''), remarkPlugins: [remarkGfm], components: {
                                         a: (props) => (jsxRuntime.jsx("a", { ...props, target: "_blank", rel: "noopener noreferrer" })),
-                                    } }) })) }), message.sources && message.sources.length > 0 && (jsxRuntime.jsx("div", { className: `mt-2 ${isUser ? "flex justify-end" : ""}`, children: jsxRuntime.jsxs("div", { className: `${isUser ? "inline-block" : "max-w-[95%]"}`, children: [jsxRuntime.jsx("div", { className: "text-xs text-gray-500 mb-1", children: jsxRuntime.jsxs("button", { onClick: () => setSourcesExpanded(!sourcesExpanded), className: "flex items-center gap-1 hover:text-gray-700", children: [jsxRuntime.jsxs("span", { children: ["Sources (", message.sources.length, ")"] }), sourcesExpanded ? (jsxRuntime.jsx("span", { children: "\u25BC" })) : (jsxRuntime.jsx("span", { children: "\u25B6" }))] }) }), sourcesExpanded && (jsxRuntime.jsx("div", { className: "space-y-1", children: message.sources.map((source, index) => (jsxRuntime.jsx(Badge, { variant: "outline", className: "text-xs mr-1 mb-1", children: source.filename || source.path || `Source ${index + 1}` }, index))) }))] }) })), message.timestamp && (jsxRuntime.jsx("div", { className: `text-xs text-gray-400 mt-1 ${isUser ? "text-right" : "text-left"}`, children: new Date(message.timestamp).toLocaleString() }))] }) })] }));
+                                    } }), jsxRuntime.jsxs("div", { className: "flex items-center gap-2 mt-2", children: [jsxRuntime.jsxs("svg", { className: "animate-spin h-4 w-4 text-blue-500", xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", children: [jsxRuntime.jsx("circle", { className: "opacity-25", cx: "12", cy: "12", r: "10", stroke: "currentColor", strokeWidth: "4" }), jsxRuntime.jsx("path", { className: "opacity-75", fill: "currentColor", d: "M4 12a8 8 0 018-8v8z" })] }), jsxRuntime.jsx("span", { className: "text-xs text-blue-500", children: "Streaming response..." })] })] })) : (
+                        // Show loading spinner when no streaming content yet
+                        jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [jsxRuntime.jsxs("svg", { className: "animate-spin h-5 w-5 text-blue-500", xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", children: [jsxRuntime.jsx("circle", { className: "opacity-25", cx: "12", cy: "12", r: "10", stroke: "currentColor", strokeWidth: "4" }), jsxRuntime.jsx("path", { className: "opacity-75", fill: "currentColor", d: "M4 12a8 8 0 018-8v8z" })] }), jsxRuntime.jsx("span", { className: "text-sm text-gray-600", children: "Thinking..." })] }))) : (
+                        // Show final message content
+                        jsxRuntime.jsx("div", { className: "prose prose-sm prose-slate max-w-none break-words prose-headings:font-semibold prose-headings:text-gray-900 prose-p:my-2 prose-p:leading-relaxed prose-pre:bg-gray-100 prose-pre:border prose-pre:border-gray-200 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-table:text-sm prose-th:bg-gray-50 prose-th:border prose-th:border-gray-200 prose-td:border prose-td:border-gray-200", children: jsxRuntime.jsx(Markdown, { children: typeof message.content === 'string' ? message.content : String(message.content || ''), remarkPlugins: [remarkGfm], components: {
+                                    a: (props) => (jsxRuntime.jsx("a", { ...props, target: "_blank", rel: "noopener noreferrer" })),
+                                } }) })) }), message.sources && message.sources.length > 0 && (jsxRuntime.jsx("div", { className: `mt-2 ${isUser ? "flex justify-end" : ""}`, children: jsxRuntime.jsxs("div", { className: `${isUser ? "inline-block" : "max-w-[95%]"}`, children: [jsxRuntime.jsx("div", { className: "text-xs text-gray-500 mb-1", children: jsxRuntime.jsxs("button", { onClick: () => setSourcesExpanded(!sourcesExpanded), className: "flex items-center gap-1 hover:text-gray-700", children: [jsxRuntime.jsxs("span", { children: ["Sources (", message.sources.length, ")"] }), sourcesExpanded ? (jsxRuntime.jsx("span", { children: "\u25BC" })) : (jsxRuntime.jsx("span", { children: "\u25B6" }))] }) }), sourcesExpanded && (jsxRuntime.jsx("div", { className: "space-y-1", children: message.sources.map((source, index) => (jsxRuntime.jsx(Badge, { variant: "outline", className: "text-xs mr-1 mb-1", children: source.filename || source.path || `Source ${index + 1}` }, index))) }))] }) })), message.timestamp && (jsxRuntime.jsxs("div", { className: `flex items-center gap-2 text-xs text-gray-400 mt-1 ${isUser ? "justify-end" : "justify-start"}`, children: [!isUser && !isLoading && (jsxRuntime.jsx("button", { onClick: handleCopy, className: "hover:text-gray-600 transition-colors", "aria-label": "Copy response", title: "Copy", children: copied ? (jsxRuntime.jsx(Check, { className: "w-3 h-3 text-green-500" })) : (jsxRuntime.jsx(Copy, { className: "w-3 h-3" })) })), jsxRuntime.jsx("span", { children: new Date(message.timestamp).toLocaleString() })] }))] }) }) }));
 };
 
 // packages/react/compose-refs/src/compose-refs.tsx
@@ -29908,368 +30295,6 @@ const Textarea = React__namespace.forwardRef(({ className, ...props }, ref) => {
     return (jsxRuntime.jsx("textarea", { className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className), ref: ref, ...props }));
 });
 Textarea.displayName = "Textarea";
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-const toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-const mergeClasses = (...classes) => classes.filter((className, index, array) => {
-  return Boolean(className) && array.indexOf(className) === index;
-}).join(" ");
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-var defaultAttributes = {
-  xmlns: "http://www.w3.org/2000/svg",
-  width: 24,
-  height: 24,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round",
-  strokeLinejoin: "round"
-};
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Icon$1 = React.forwardRef(
-  ({
-    color = "currentColor",
-    size = 24,
-    strokeWidth = 2,
-    absoluteStrokeWidth,
-    className = "",
-    children,
-    iconNode,
-    ...rest
-  }, ref) => {
-    return React.createElement(
-      "svg",
-      {
-        ref,
-        ...defaultAttributes,
-        width: size,
-        height: size,
-        stroke: color,
-        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
-        className: mergeClasses("lucide", className),
-        ...rest
-      },
-      [
-        ...iconNode.map(([tag, attrs]) => React.createElement(tag, attrs)),
-        ...Array.isArray(children) ? children : [children]
-      ]
-    );
-  }
-);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const createLucideIcon = (iconName, iconNode) => {
-  const Component = React.forwardRef(
-    ({ className, ...props }, ref) => React.createElement(Icon$1, {
-      ref,
-      iconNode,
-      className: mergeClasses(`lucide-${toKebabCase(iconName)}`, className),
-      ...props
-    })
-  );
-  Component.displayName = `${iconName}`;
-  return Component;
-};
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const BarChart3 = createLucideIcon("BarChart3", [
-  ["path", { d: "M3 3v18h18", key: "1s2lah" }],
-  ["path", { d: "M18 17V9", key: "2bz60n" }],
-  ["path", { d: "M13 17V5", key: "1frdt8" }],
-  ["path", { d: "M8 17v-3", key: "17ska0" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Bot = createLucideIcon("Bot", [
-  ["path", { d: "M12 8V4H8", key: "hb8ula" }],
-  ["rect", { width: "16", height: "12", x: "4", y: "8", rx: "2", key: "enze0r" }],
-  ["path", { d: "M2 14h2", key: "vft8re" }],
-  ["path", { d: "M20 14h2", key: "4cs60a" }],
-  ["path", { d: "M15 13v2", key: "1xurst" }],
-  ["path", { d: "M9 13v2", key: "rq6x2g" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Check = createLucideIcon("Check", [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const ChevronDown = createLucideIcon("ChevronDown", [
-  ["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const ChevronUp = createLucideIcon("ChevronUp", [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const CircleAlert = createLucideIcon("CircleAlert", [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
-  ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Clock = createLucideIcon("Clock", [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["polyline", { points: "12 6 12 12 16 14", key: "68esgv" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Database = createLucideIcon("Database", [
-  ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
-  ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
-  ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Hash = createLucideIcon("Hash", [
-  ["line", { x1: "4", x2: "20", y1: "9", y2: "9", key: "4lhtct" }],
-  ["line", { x1: "4", x2: "20", y1: "15", y2: "15", key: "vyu0kd" }],
-  ["line", { x1: "10", x2: "8", y1: "3", y2: "21", key: "1ggp8o" }],
-  ["line", { x1: "16", x2: "14", y1: "3", y2: "21", key: "weycgp" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Info = createLucideIcon("Info", [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["path", { d: "M12 16v-4", key: "1dtifu" }],
-  ["path", { d: "M12 8h.01", key: "e9boi3" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Layers = createLucideIcon("Layers", [
-  [
-    "path",
-    {
-      d: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z",
-      key: "8b97xw"
-    }
-  ],
-  ["path", { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65", key: "dd6zsq" }],
-  ["path", { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65", key: "ep9fru" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const LoaderCircle = createLucideIcon("LoaderCircle", [
-  ["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Package = createLucideIcon("Package", [
-  ["path", { d: "m7.5 4.27 9 5.15", key: "1c824w" }],
-  [
-    "path",
-    {
-      d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z",
-      key: "hh9hay"
-    }
-  ],
-  ["path", { d: "m3.3 7 8.7 5 8.7-5", key: "g66t2b" }],
-  ["path", { d: "M12 22V12", key: "d0xqtd" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Radio = createLucideIcon("Radio", [
-  ["path", { d: "M4.9 19.1C1 15.2 1 8.8 4.9 4.9", key: "1vaf9d" }],
-  ["path", { d: "M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5", key: "u1ii0m" }],
-  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }],
-  ["path", { d: "M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5", key: "1j5fej" }],
-  ["path", { d: "M19.1 4.9C23 8.8 23 15.1 19.1 19", key: "10b0cb" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const RefreshCw = createLucideIcon("RefreshCw", [
-  ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
-  ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
-  ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
-  ["path", { d: "M8 16H3v5", key: "1cv678" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Send = createLucideIcon("Send", [
-  ["path", { d: "m22 2-7 20-4-9-9-4Z", key: "1q3vgg" }],
-  ["path", { d: "M22 2 11 13", key: "nzbqef" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Sparkles = createLucideIcon("Sparkles", [
-  [
-    "path",
-    {
-      d: "M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z",
-      key: "4pj2yx"
-    }
-  ],
-  ["path", { d: "M20 3v4", key: "1olli1" }],
-  ["path", { d: "M22 5h-4", key: "1gvqau" }],
-  ["path", { d: "M4 17v2", key: "vumght" }],
-  ["path", { d: "M5 18H3", key: "zchphs" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Zap = createLucideIcon("Zap", [
-  [
-    "path",
-    {
-      d: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
-      key: "1xq2db"
-    }
-  ]
-]);
 
 const ChatInput = ({ onSendMessage, isLoading = false, placeholder = "Ask a question...", disabled = false, uiVariant = 'default', formClassName, containerClassName, textareaClassName, buttonClassName }) => {
     const [message, setMessage] = React.useState('');
@@ -36715,7 +36740,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                                         hasGetAvailableAgents: !!provider.getAvailableAgents
                                     });
                                     return shouldShow;
-                                })() && (jsxRuntime.jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents?.().map((agent) => (jsxRuntime.jsx(SelectItem, { value: agent, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsxRuntime.jsx(Bot, { className: "w-4 h-4" })) : (jsxRuntime.jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (firestoreConfig.showStreamingSelector ?? config.showStreamingSelector) && (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs(Tooltip, { children: [jsxRuntime.jsx(TooltipTrigger, { asChild: true, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-1", children: [jsxRuntime.jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsxs(SelectContent, { className: "z-50", children: [jsxRuntime.jsx(SelectItem, { value: "0", children: "Always Stream" }), jsxRuntime.jsx(SelectItem, { value: "300", children: "300 chars" }), jsxRuntime.jsx(SelectItem, { value: "500", children: "500 chars" }), jsxRuntime.jsx(SelectItem, { value: "1000", children: "1K chars" }), jsxRuntime.jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsxRuntime.jsx(SelectItem, { value: "2000", children: "2K chars" }), jsxRuntime.jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsxRuntime.jsx(Info, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsxRuntime.jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxRuntime.jsxs("div", { className: "space-y-2", children: [jsxRuntime.jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsxRuntime.jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsxRuntime.jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxRuntime.jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), showNewChatButton && (jsxRuntime.jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsxRuntime.jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] }))] })] }) })), jsxRuntime.jsxs(CardContent, { className: "flex-1 p-0 flex flex-col overflow-hidden", children: [messages.length === 0 ? (jsxRuntime.jsxs("div", { className: config.uiVariant === 'rex'
+                                })() && (jsxRuntime.jsxs(Select, { value: selectedAgent || '', onValueChange: handleAgentChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsx(SelectContent, { className: "z-50", children: provider.getAvailableAgents?.().map((agent) => (jsxRuntime.jsx(SelectItem, { value: agent, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-2", children: [agent === 'askRex' ? (jsxRuntime.jsx(Bot, { className: "w-4 h-4" })) : (jsxRuntime.jsx(Sparkles, { className: "w-4 h-4" })), agent] }) }, agent))) })] })), config.enableStreaming && (firestoreConfig.showStreamingSelector ?? config.showStreamingSelector) && (jsxRuntime.jsx(TooltipProvider, { children: jsxRuntime.jsxs(Tooltip, { children: [jsxRuntime.jsx(TooltipTrigger, { asChild: true, children: jsxRuntime.jsxs("div", { className: "flex items-center gap-1", children: [jsxRuntime.jsxs(Select, { value: streamingThreshold.toString(), onValueChange: handleStreamingThresholdChange, children: [jsxRuntime.jsx(SelectTrigger, { className: "w-40", children: jsxRuntime.jsx(SelectValue, {}) }), jsxRuntime.jsxs(SelectContent, { className: "z-50", children: [jsxRuntime.jsx(SelectItem, { value: "0", children: "Always Stream" }), jsxRuntime.jsx(SelectItem, { value: "300", children: "300 chars" }), jsxRuntime.jsx(SelectItem, { value: "500", children: "500 chars" }), jsxRuntime.jsx(SelectItem, { value: "1000", children: "1K chars" }), jsxRuntime.jsx(SelectItem, { value: "1500", children: "1.5K chars" }), jsxRuntime.jsx(SelectItem, { value: "2000", children: "2K chars" }), jsxRuntime.jsx(SelectItem, { value: "999999", children: "Never Stream" })] })] }), jsxRuntime.jsx(Info$1, { className: "w-4 h-4 text-muted-foreground" })] }) }), jsxRuntime.jsx(TooltipContent, { side: "bottom", className: "max-w-xs z-50", children: jsxRuntime.jsxs("div", { className: "space-y-2", children: [jsxRuntime.jsx("p", { className: "font-semibold", children: "Streaming Threshold" }), jsxRuntime.jsx("p", { className: "text-sm", children: "Controls when responses stream word-by-word vs appear all-at-once." }), jsxRuntime.jsx("p", { className: "text-sm", children: "Numbers indicate minimum characters before streaming begins." }), jsxRuntime.jsxs("ul", { className: "text-xs space-y-1 mt-2", children: [jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Always Stream:" }), " All responses stream instantly"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "300-2K:" }), " Only responses above threshold stream"] }), jsxRuntime.jsxs("li", { children: ["\u2022 ", jsxRuntime.jsx("strong", { children: "Never Stream:" }), " Wait for complete response"] })] })] }) })] }) })), showNewChatButton && (jsxRuntime.jsxs(Button, { variant: "outline", size: "sm", onClick: handleNewChat, children: [jsxRuntime.jsx(RefreshCw, { className: "w-4 h-4 mr-2" }), "New Chat"] }))] })] }) })), jsxRuntime.jsxs(CardContent, { className: "flex-1 p-0 flex flex-col overflow-hidden", children: [messages.length === 0 ? (jsxRuntime.jsxs("div", { className: config.uiVariant === 'rex'
                             ? "flex flex-col items-center justify-center h-full space-y-8 p-8"
                             : "flex flex-col items-center justify-center flex-1 text-center space-y-4 p-4", children: [config.welcomeGreeting && config.uiVariant === 'rex' && (jsxRuntime.jsx("h2", { className: "text-4xl font-normal text-gray-800", children: config.welcomeGreeting })), config.welcomeMessage && config.uiVariant !== 'rex' && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx("div", { className: "w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center", children: jsxRuntime.jsx(Bot, { className: "w-8 h-8 text-blue-500" }) }), jsxRuntime.jsxs("div", { children: [jsxRuntime.jsx("h3", { className: "text-lg font-semibold text-gray-900", children: "Welcome to Ask Rex!" }), jsxRuntime.jsx("p", { className: "text-gray-600 max-w-md mx-auto", children: config.welcomeMessage })] })] })), config.uiVariant === 'rex' && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsxs("div", { className: "w-full max-w-2xl", children: [jsxRuntime.jsx("h1", { className: "text-4xl font-normal text-gray-900 mb-3 text-left", children: "Rex" }), jsxRuntime.jsx(ChatInput, { onSendMessage: sendMessage, isLoading: isLoading, placeholder: config.placeholder, disabled: !provider || !!error, uiVariant: config.uiVariant, formClassName: formClassName, containerClassName: containerClassName, textareaClassName: textareaClassName, buttonClassName: buttonClassName })] }), config.enableQuestions && (jsxRuntime.jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: questionsToUse, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions, hideShowMoreButton: true, uiVariant: config.uiVariant }))] })), config.enableQuestions && config.uiVariant !== 'rex' && (jsxRuntime.jsx(DynamicQuestions, { onQuestionClick: handleQuestionClick, isLoading: isLoading, questions: questionsToUse, maxInitialQuestions: config.maxInitialQuestions, fallbackQuestions: config.fallbackQuestions, hideShowMoreButton: config.hideShowMoreButton, uiVariant: config.uiVariant }))] })) : (jsxRuntime.jsx("div", { className: "flex-1 overflow-y-auto p-4 scrollbar-hide", children: jsxRuntime.jsxs("div", { className: "space-y-4 break-words", style: { wordWrap: "break-word", overflowWrap: "anywhere" }, children: [messages.map((message, index) => {
                                     const isLastMessage = index === messages.length - 1;
