@@ -316,7 +316,7 @@ export const DynamicQuestions: React.FC<DynamicQuestionsProps> = ({
     return (
       <div className="flex flex-col items-center gap-3 max-w-2xl">
         {/* Static header text */}
-        <p className="text-sm text-gray-600 font-medium">Try one of these questions:</p>
+        <p className="text-lg text-primary font-medium">Try one of these questions:</p>
         
         {/* Questions as centered pill buttons */}
         <div className="flex flex-wrap justify-center gap-3">
