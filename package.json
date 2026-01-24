@@ -1,6 +1,6 @@
 {
   "name": "@shockproofai/shockproof-components",
-  "version": "4.7.4",
+  "version": "4.7.5",
   "type": "module",
   "description": "Reusable React Components Library for ShockProof AI applications",
   "main": "./dist/index.js",
