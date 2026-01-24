@@ -2,13 +2,15 @@
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { createContext, useState, useEffect, useContext } from 'react';
 import { getAuth, onAuthStateChanged, isSignInWithEmailLink, signInAnonymously, signInWithEmailLink, GoogleAuthProvider, signInWithPopup, sendSignInLinkToEmail, signOut } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const AuthContext = createContext(undefined);
-const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, enableEmailLink = false, onSendEmailLink, onEmailLinkSent, onEmailLinkError, emailLinkActionURL, emailLinkHandleCodeInApp = true, children, }) => {
+const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, enableEmailLink = false, onSendEmailLink, onEmailLinkSent, onEmailLinkError, emailLinkActionURL, emailLinkHandleCodeInApp = true, useCustomEmailSender = false, customEmailFunctionName = "sendSignInEmail", children, }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const auth = getAuth(firebaseApp);
+    const functions = getFunctions(firebaseApp);
     // Validate at least one auth method is enabled
     useEffect(() => {
     }, [autoSignInAnonymously, enableEmailLink]);
@@ -82,8 +84,16 @@ const AuthProvider = ({ firebaseApp, autoSignInAnonymously = false, enableEmailL
                 handleCodeInApp: emailLinkHandleCodeInApp,
             };
             if (onSendEmailLink) {
-                // Custom email sender provided - use it
+                // Custom email sender callback provided - use it
                 await onSendEmailLink(email);
+            }
+            else if (useCustomEmailSender) {
+                // Use custom cloud function to send branded email
+                const sendSignInEmail = httpsCallable(functions, customEmailFunctionName);
+                await sendSignInEmail({
+                    email,
+                    actionCodeSettings,
+                });
             }
             else {
                 // Use Firebase's built-in email service
@@ -285,8 +295,8 @@ const AuthGate = ({ enableGoogle, enableEmailLink, heading, tagline, badgeText, 
  * </Auth>
  * ```
  */
-const Auth = ({ firebaseApp, autoSignInAnonymously = false, enableGoogle = true, enableEmailLink = false, heading, tagline, badgeText, emailLinkSuccessMessage, emailLinkSuccessInstructions, onSendEmailLink, onEmailLinkSent, onEmailLinkError, emailLinkActionURL, emailLinkHandleCodeInApp, children, }) => {
-    return (jsx(AuthProvider, { firebaseApp: firebaseApp, autoSignInAnonymously: autoSignInAnonymously, enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, onSendEmailLink: onSendEmailLink, onEmailLinkSent: onEmailLinkSent, onEmailLinkError: onEmailLinkError, emailLinkActionURL: emailLinkActionURL, emailLinkHandleCodeInApp: emailLinkHandleCodeInApp, children: jsx(AuthGate, { enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, heading: heading, tagline: tagline, badgeText: badgeText, emailLinkSuccessMessage: emailLinkSuccessMessage, emailLinkSuccessInstructions: emailLinkSuccessInstructions, children: children }) }));
+const Auth = ({ firebaseApp, autoSignInAnonymously = false, enableGoogle = true, enableEmailLink = false, heading, tagline, badgeText, emailLinkSuccessMessage, emailLinkSuccessInstructions, onSendEmailLink, onEmailLinkSent, onEmailLinkError, emailLinkActionURL, emailLinkHandleCodeInApp, useCustomEmailSender, customEmailFunctionName, children, }) => {
+    return (jsx(AuthProvider, { firebaseApp: firebaseApp, autoSignInAnonymously: autoSignInAnonymously, enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, onSendEmailLink: onSendEmailLink, onEmailLinkSent: onEmailLinkSent, onEmailLinkError: onEmailLinkError, emailLinkActionURL: emailLinkActionURL, emailLinkHandleCodeInApp: emailLinkHandleCodeInApp, useCustomEmailSender: useCustomEmailSender, customEmailFunctionName: customEmailFunctionName, children: jsx(AuthGate, { enableGoogle: enableGoogle, enableEmailLink: enableEmailLink, heading: heading, tagline: tagline, badgeText: badgeText, emailLinkSuccessMessage: emailLinkSuccessMessage, emailLinkSuccessInstructions: emailLinkSuccessInstructions, children: children }) }));
 };
 
 export { Auth, AuthProvider, AuthUI, useAuth };

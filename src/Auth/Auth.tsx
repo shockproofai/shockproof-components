@@ -88,6 +88,8 @@ export const Auth: React.FC<AuthProps> = ({
   onEmailLinkError,
   emailLinkActionURL,
   emailLinkHandleCodeInApp,
+  useCustomEmailSender,
+  customEmailFunctionName,
   children,
 }) => {
   return (
@@ -101,6 +103,8 @@ export const Auth: React.FC<AuthProps> = ({
       onEmailLinkError={onEmailLinkError}
       emailLinkActionURL={emailLinkActionURL}
       emailLinkHandleCodeInApp={emailLinkHandleCodeInApp}
+      useCustomEmailSender={useCustomEmailSender}
+      customEmailFunctionName={customEmailFunctionName}
     >
       <AuthGate 
         enableGoogle={enableGoogle} 

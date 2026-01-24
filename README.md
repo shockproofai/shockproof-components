@@ -138,6 +138,15 @@ function App() {
   Optional override to send the magic link (if omitted, the component will call Firebase's built-in `sendSignInLinkToEmail`).  
   Use this to integrate with your own email service (e.g., SendGrid, Resend).
 
+- **`useCustomEmailSender?: boolean`**  
+  Use a custom cloud function to send sign-in emails instead of Firebase's built-in service (default: `false`).  
+  When enabled, emails are generated server-side using Firebase Admin SDK and sent via a custom email provider (e.g., MailerSend), allowing full control over email branding.  
+  Requires the `sendSignInEmail` cloud function to be deployed.
+
+- **`customEmailFunctionName?: string`**  
+  Name of the cloud function to call for sending sign-in emails (default: `"sendSignInEmail"`).  
+  Only used when `useCustomEmailSender` is `true`.
+
 - **`emailLinkActionURL?: string`**  
   URL to redirect to after email link is clicked (default: `window.location.href`).
 

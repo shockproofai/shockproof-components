@@ -82,6 +82,21 @@ export interface AuthConfig {
      * @default true
      */
     emailLinkHandleCodeInApp?: boolean;
+    /**
+     * Use a custom cloud function to send sign-in emails instead of Firebase's built-in service.
+     * When enabled, emails are generated server-side using Firebase Admin SDK and sent via
+     * a custom email provider (e.g., MailerSend), allowing full control over email branding.
+     *
+     * Requires the `sendSignInEmail` cloud function to be deployed.
+     * @default false
+     */
+    useCustomEmailSender?: boolean;
+    /**
+     * Name of the cloud function to call for sending sign-in emails.
+     * Only used when `useCustomEmailSender` is true.
+     * @default "sendSignInEmail"
+     */
+    customEmailFunctionName?: string;
 }
 /**
  * Auth context value

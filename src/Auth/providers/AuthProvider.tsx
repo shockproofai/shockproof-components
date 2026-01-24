@@ -11,6 +11,7 @@ import {
   signInWithEmailLink,
   User,
 } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { AuthContextType, AuthProviderProps } from "../types";
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -26,6 +27,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   onEmailLinkError,
   emailLinkActionURL,
   emailLinkHandleCodeInApp = true,
+  useCustomEmailSender = false,
+  customEmailFunctionName = "sendSignInEmail",
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const auth = getAuth(firebaseApp);
+  const functions = getFunctions(firebaseApp);
 
   // Validate at least one auth method is enabled
   useEffect(() => {
@@ -125,8 +129,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       };
 
       if (onSendEmailLink) {
-        // Custom email sender provided - use it
+        // Custom email sender callback provided - use it
         await onSendEmailLink(email);
+      } else if (useCustomEmailSender) {
+        // Use custom cloud function to send branded email
+        const sendSignInEmail = httpsCallable(functions, customEmailFunctionName);
+        await sendSignInEmail({
+          email,
+          actionCodeSettings,
+        });
       } else {
         // Use Firebase's built-in email service
         await sendSignInLinkToEmail(auth, email, actionCodeSettings);
