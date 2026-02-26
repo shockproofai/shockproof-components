@@ -428,7 +428,7 @@ export function AIChatbot({
               )}
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide bg-background">
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide" style={{ backgroundColor: '#fafafa' }}>
               <div className="space-y-4 break-words pb-8" style={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
               {messages.map((message, index) => {
                 const isLastMessage = index === messages.length - 1;
