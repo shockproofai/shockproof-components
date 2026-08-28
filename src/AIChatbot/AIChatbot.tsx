@@ -102,9 +102,16 @@ export function AIChatbot({
   const [configLoading, setConfigLoading] = useState(false);
   const [configLoaded, setConfigLoaded] = useState(false);
 
-  // Load config from provider if available
+  // Load config from provider if available.
+  //
+  // Gate on `configLoaded`, not on the config being empty. The provider can
+  // legitimately resolve to {} — and can fail outright, which is what happens
+  // when the Firestore read is denied — leaving the config empty forever. With
+  // an emptiness guard the effect re-ran on every `configLoading` flip and
+  // refetched indefinitely: observed at ~19 requests/second, unbounded, for as
+  // long as the page stayed open.
   React.useEffect(() => {
-    if (provider.getChatbotConfig && !configLoading && Object.keys(firestoreConfig).length === 0) {
+    if (provider.getChatbotConfig && !configLoading && !configLoaded) {
       console.log('[AIChatbot] Loading config from provider...');
       setConfigLoading(true);
       provider.getChatbotConfig()
@@ -120,11 +127,13 @@ export function AIChatbot({
           setConfigLoaded(true); // Still mark as loaded even on error
         });
     }
-  }, [provider, configLoading, firestoreConfig]);
+  }, [provider, configLoading, configLoaded]);
 
+  // Same shape as the config effect above, and gated the same way: an empty
+  // result or a failed fetch must not re-arm the guard.
   React.useEffect(() => {
     // Only load from provider if no questions in config and provider has getQuestions
-    if (!config.questions && provider.getQuestions && !questionsLoading && loadedQuestions.length === 0) {
+    if (!config.questions && provider.getQuestions && !questionsLoading && !questionsLoaded) {
       console.log('[AIChatbot] Loading questions from provider...');
       setQuestionsLoading(true);
       provider.getQuestions()
@@ -140,7 +149,7 @@ export function AIChatbot({
           setQuestionsLoaded(true); // Still mark as loaded even on error
         });
     }
-  }, [config.questions, provider, questionsLoading, loadedQuestions.length]);
+  }, [config.questions, provider, questionsLoading, questionsLoaded]);
 
   // Use loaded questions if config doesn't provide them
   // If provider has getQuestions and we're waiting for them to load, return undefined to prevent fallback flash

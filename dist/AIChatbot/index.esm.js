@@ -5,61 +5,6 @@ import React__default, { useState, useRef, useEffect, useCallback, forwardRef, c
 import * as ReactDOM from 'react-dom';
 import ReactDOM__default from 'react-dom';
 
-// Unique ID creation requires a high quality random # generator. In the browser we therefore
-// require the crypto API and do not support built-in fallback to lower quality random number
-// generators (like Math.random()).
-let getRandomValues;
-const rnds8 = new Uint8Array(16);
-function rng() {
-  // lazy load so that environments that need to polyfill have a chance to do so
-  if (!getRandomValues) {
-    // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
-    getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
-
-    if (!getRandomValues) {
-      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
-    }
-  }
-
-  return getRandomValues(rnds8);
-}
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-
-const byteToHex = [];
-
-for (let i = 0; i < 256; ++i) {
-  byteToHex.push((i + 0x100).toString(16).slice(1));
-}
-
-function unsafeStringify(arr, offset = 0) {
-  // Note: Be careful editing this code!  It's been tuned for performance
-  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-  return byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]];
-}
-
-const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID && crypto.randomUUID.bind(crypto);
-var native = {
-  randomUUID
-};
-
-function v4(options, buf, offset) {
-  if (native.randomUUID && true && !options) {
-    return native.randomUUID();
-  }
-
-  options = options || {};
-  const rnds = options.random || (options.rng || rng)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-
-  rnds[6] = rnds[6] & 0x0f | 0x40;
-  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
-
-  return unsafeStringify(rnds);
-}
-
 // Custom hook for managing chat state
 function useChatState({ provider, config = {}, onMessageSent, onMessageReceived, onError, user, userId, saveSessionHistory = false, loadSessionId, initialMessages = [] }) {
     // Core state
@@ -80,7 +25,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
     // Initialize session
     useEffect(() => {
         if (!sessionId) {
-            setSessionId(v4());
+            setSessionId(crypto.randomUUID());
         }
     }, [sessionId]);
     // Cleanup streaming timeout on unmount
@@ -105,14 +50,14 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
             // Use regular sendMessage as fallback
             const context = {
                 conversationHistory: messages.filter(m => !m.isLoading),
-                sessionId: sessionId || v4(),
+                sessionId: sessionId || crypto.randomUUID(),
                 userId: user?.id,
             };
             provider.sendMessage(lastUserMessage.content, context, { ...config, enableStreaming: false })
                 .then(response => {
                 setIsLoading(false);
                 const assistantMessage = {
-                    id: v4(),
+                    id: crypto.randomUUID(),
                     content: response.answer,
                     role: 'assistant',
                     timestamp: new Date(),
@@ -192,14 +137,14 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
             streamingCompletedRef.current = false;
             // Add user message immediately
             const userMessage = {
-                id: v4(),
+                id: crypto.randomUUID(),
                 content: messageText.trim(),
                 role: 'user',
                 timestamp: new Date(),
             };
             // Add loading assistant message
             const loadingMessage = {
-                id: v4(),
+                id: crypto.randomUUID(),
                 content: '',
                 role: 'assistant',
                 timestamp: new Date(),
@@ -211,7 +156,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
             // Prepare context
             const context = {
                 conversationHistory: messages.filter(m => !m.isLoading),
-                sessionId: sessionId || v4(),
+                sessionId: sessionId || crypto.randomUUID(),
                 userId: user?.id,
             };
             // Try streaming first if supported and enabled
@@ -240,7 +185,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
                     setMessages(prev => {
                         const filtered = prev.filter(msg => !msg.isLoading);
                         const assistantMessage = {
-                            id: v4(),
+                            id: crypto.randomUUID(),
                             content: response.answer,
                             role: 'assistant',
                             timestamp: new Date(),
@@ -266,7 +211,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
                 setMessages(prev => {
                     const filtered = prev.filter(msg => !msg.isLoading);
                     const assistantMessage = {
-                        id: v4(),
+                        id: crypto.randomUUID(),
                         content: response.answer,
                         role: 'assistant',
                         timestamp: new Date(),
@@ -294,7 +239,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
             setMessages(prev => {
                 const filtered = prev.filter(msg => !msg.isLoading);
                 const errorMessage = {
-                    id: v4(),
+                    id: crypto.randomUUID(),
                     content: `Error: ${error.message}`,
                     role: 'assistant',
                     timestamp: new Date(),
@@ -373,7 +318,7 @@ function useChatState({ provider, config = {}, onMessageSent, onMessageReceived,
      * Start a new session
      */
     const startNewSession = useCallback(() => {
-        setSessionId(v4());
+        setSessionId(crypto.randomUUID());
         clearMessages();
     }, [clearMessages]);
     return {
@@ -2967,19 +2912,52 @@ function Badge({ className, variant, ...props }) {
 }
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+const mergeClasses = (...classes) => classes.filter((className, index, array) => {
+  return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index;
+}).join(" ").trim();
+
+/**
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 const toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-const mergeClasses = (...classes) => classes.filter((className, index, array) => {
-  return Boolean(className) && array.indexOf(className) === index;
-}).join(" ");
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+const toCamelCase = (string) => string.replace(
+  /^([A-Z])|[\s-_]+(\w)/g,
+  (match, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase()
+);
+
+/**
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const toPascalCase = (string) => {
+  const camelCase = toCamelCase(string);
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+};
+
+/**
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -2998,7 +2976,23 @@ var defaultAttributes = {
 };
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+const hasA11yProp = (props) => {
+  for (const prop in props) {
+    if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -3015,29 +3009,28 @@ const Icon$1 = forwardRef(
     children,
     iconNode,
     ...rest
-  }, ref) => {
-    return createElement(
-      "svg",
-      {
-        ref,
-        ...defaultAttributes,
-        width: size,
-        height: size,
-        stroke: color,
-        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
-        className: mergeClasses("lucide", className),
-        ...rest
-      },
-      [
-        ...iconNode.map(([tag, attrs]) => createElement(tag, attrs)),
-        ...Array.isArray(children) ? children : [children]
-      ]
-    );
-  }
+  }, ref) => createElement(
+    "svg",
+    {
+      ref,
+      ...defaultAttributes,
+      width: size,
+      height: size,
+      stroke: color,
+      strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
+      className: mergeClasses("lucide", className),
+      ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
+      ...rest
+    },
+    [
+      ...iconNode.map(([tag, attrs]) => createElement(tag, attrs)),
+      ...Array.isArray(children) ? children : [children]
+    ]
+  )
 );
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -3049,289 +3042,324 @@ const createLucideIcon = (iconName, iconNode) => {
     ({ className, ...props }, ref) => createElement(Icon$1, {
       ref,
       iconNode,
-      className: mergeClasses(`lucide-${toKebabCase(iconName)}`, className),
+      className: mergeClasses(
+        `lucide-${toKebabCase(toPascalCase(iconName))}`,
+        `lucide-${iconName}`,
+        className
+      ),
       ...props
     })
   );
-  Component.displayName = `${iconName}`;
+  Component.displayName = toPascalCase(iconName);
   return Component;
 };
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const BarChart3 = createLucideIcon("BarChart3", [
-  ["path", { d: "M3 3v18h18", key: "1s2lah" }],
-  ["path", { d: "M18 17V9", key: "2bz60n" }],
-  ["path", { d: "M13 17V5", key: "1frdt8" }],
-  ["path", { d: "M8 17v-3", key: "17ska0" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Bot = createLucideIcon("Bot", [
+const __iconNode$i = [
   ["path", { d: "M12 8V4H8", key: "hb8ula" }],
   ["rect", { width: "16", height: "12", x: "4", y: "8", rx: "2", key: "enze0r" }],
   ["path", { d: "M2 14h2", key: "vft8re" }],
   ["path", { d: "M20 14h2", key: "4cs60a" }],
   ["path", { d: "M15 13v2", key: "1xurst" }],
   ["path", { d: "M9 13v2", key: "rq6x2g" }]
-]);
+];
+const Bot = createLucideIcon("bot", __iconNode$i);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Check = createLucideIcon("Check", [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]]);
+const __iconNode$h = [
+  ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
+  ["path", { d: "M18 17V9", key: "2bz60n" }],
+  ["path", { d: "M13 17V5", key: "1frdt8" }],
+  ["path", { d: "M8 17v-3", key: "17ska0" }]
+];
+const ChartColumn = createLucideIcon("chart-column", __iconNode$h);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const ChevronDown = createLucideIcon("ChevronDown", [
-  ["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]
-]);
+const __iconNode$g = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+const Check = createLucideIcon("check", __iconNode$g);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const ChevronUp = createLucideIcon("ChevronUp", [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]]);
+const __iconNode$f = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+const ChevronDown = createLucideIcon("chevron-down", __iconNode$f);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const CircleAlert = createLucideIcon("CircleAlert", [
+const __iconNode$e = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+const ChevronUp = createLucideIcon("chevron-up", __iconNode$e);
+
+/**
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$d = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
   ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
-]);
+];
+const CircleAlert = createLucideIcon("circle-alert", __iconNode$d);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Clock = createLucideIcon("Clock", [
+const __iconNode$c = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["polyline", { points: "12 6 12 12 16 14", key: "68esgv" }]
-]);
+  ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }]
+];
+const Clock = createLucideIcon("clock", __iconNode$c);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Copy = createLucideIcon("Copy", [
+const __iconNode$b = [
   ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
   ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
-]);
+];
+const Copy = createLucideIcon("copy", __iconNode$b);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Database = createLucideIcon("Database", [
+const __iconNode$a = [
   ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
   ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
   ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
-]);
+];
+const Database = createLucideIcon("database", __iconNode$a);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Hash = createLucideIcon("Hash", [
+const __iconNode$9 = [
   ["line", { x1: "4", x2: "20", y1: "9", y2: "9", key: "4lhtct" }],
   ["line", { x1: "4", x2: "20", y1: "15", y2: "15", key: "vyu0kd" }],
   ["line", { x1: "10", x2: "8", y1: "3", y2: "21", key: "1ggp8o" }],
   ["line", { x1: "16", x2: "14", y1: "3", y2: "21", key: "weycgp" }]
-]);
+];
+const Hash = createLucideIcon("hash", __iconNode$9);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Info$1 = createLucideIcon("Info", [
+const __iconNode$8 = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "M12 16v-4", key: "1dtifu" }],
   ["path", { d: "M12 8h.01", key: "e9boi3" }]
-]);
+];
+const Info$1 = createLucideIcon("info", __iconNode$8);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Layers = createLucideIcon("Layers", [
+const __iconNode$7 = [
   [
     "path",
     {
-      d: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z",
-      key: "8b97xw"
+      d: "M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z",
+      key: "zw3jo"
     }
   ],
-  ["path", { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65", key: "dd6zsq" }],
-  ["path", { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65", key: "ep9fru" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const LoaderCircle = createLucideIcon("LoaderCircle", [
-  ["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Package = createLucideIcon("Package", [
-  ["path", { d: "m7.5 4.27 9 5.15", key: "1c824w" }],
   [
     "path",
     {
-      d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z",
-      key: "hh9hay"
+      d: "M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12",
+      key: "1wduqc"
     }
   ],
-  ["path", { d: "m3.3 7 8.7 5 8.7-5", key: "g66t2b" }],
-  ["path", { d: "M12 22V12", key: "d0xqtd" }]
-]);
+  [
+    "path",
+    {
+      d: "M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17",
+      key: "kqbvx6"
+    }
+  ]
+];
+const Layers = createLucideIcon("layers", __iconNode$7);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Radio = createLucideIcon("Radio", [
-  ["path", { d: "M4.9 19.1C1 15.2 1 8.8 4.9 4.9", key: "1vaf9d" }],
-  ["path", { d: "M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5", key: "u1ii0m" }],
-  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }],
-  ["path", { d: "M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5", key: "1j5fej" }],
-  ["path", { d: "M19.1 4.9C23 8.8 23 15.1 19.1 19", key: "10b0cb" }]
-]);
+const __iconNode$6 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+const LoaderCircle = createLucideIcon("loader-circle", __iconNode$6);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const RefreshCw = createLucideIcon("RefreshCw", [
+const __iconNode$5 = [
+  [
+    "path",
+    {
+      d: "M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z",
+      key: "1a0edw"
+    }
+  ],
+  ["path", { d: "M12 22V12", key: "d0xqtd" }],
+  ["polyline", { points: "3.29 7 12 12 20.71 7", key: "ousv84" }],
+  ["path", { d: "m7.5 4.27 9 5.15", key: "1c824w" }]
+];
+const Package = createLucideIcon("package", __iconNode$5);
+
+/**
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$4 = [
+  ["path", { d: "M16.247 7.761a6 6 0 0 1 0 8.478", key: "1fwjs5" }],
+  ["path", { d: "M19.075 4.933a10 10 0 0 1 0 14.134", key: "ehdyv1" }],
+  ["path", { d: "M4.925 19.067a10 10 0 0 1 0-14.134", key: "1q22gi" }],
+  ["path", { d: "M7.753 16.239a6 6 0 0 1 0-8.478", key: "r2q7qm" }],
+  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }]
+];
+const Radio = createLucideIcon("radio", __iconNode$4);
+
+/**
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$3 = [
   ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
   ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
   ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
   ["path", { d: "M8 16H3v5", key: "1cv678" }]
-]);
+];
+const RefreshCw = createLucideIcon("refresh-cw", __iconNode$3);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Send = createLucideIcon("Send", [
-  ["path", { d: "m22 2-7 20-4-9-9-4Z", key: "1q3vgg" }],
-  ["path", { d: "M22 2 11 13", key: "nzbqef" }]
-]);
-
-/**
- * @license lucide-react v0.400.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Sparkles = createLucideIcon("Sparkles", [
+const __iconNode$2 = [
   [
     "path",
     {
-      d: "M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z",
-      key: "4pj2yx"
+      d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
+      key: "1ffxy3"
     }
   ],
-  ["path", { d: "M20 3v4", key: "1olli1" }],
-  ["path", { d: "M22 5h-4", key: "1gvqau" }],
-  ["path", { d: "M4 17v2", key: "vumght" }],
-  ["path", { d: "M5 18H3", key: "zchphs" }]
-]);
+  ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
+];
+const Send = createLucideIcon("send", __iconNode$2);
 
 /**
- * @license lucide-react v0.400.0 - ISC
+ * @license lucide-react v0.575.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
 
 
-const Zap = createLucideIcon("Zap", [
+const __iconNode$1 = [
+  [
+    "path",
+    {
+      d: "M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z",
+      key: "1s2grr"
+    }
+  ],
+  ["path", { d: "M20 2v4", key: "1rf3ol" }],
+  ["path", { d: "M22 4h-4", key: "gwowj6" }],
+  ["circle", { cx: "4", cy: "20", r: "2", key: "6kqj1y" }]
+];
+const Sparkles = createLucideIcon("sparkles", __iconNode$1);
+
+/**
+ * @license lucide-react v0.575.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode = [
   [
     "path",
     {
@@ -3339,7 +3367,8 @@ const Zap = createLucideIcon("Zap", [
       key: "1xq2db"
     }
   ]
-]);
+];
+const Zap = createLucideIcon("zap", __iconNode);
 
 function ok$1() {}
 
@@ -3562,14 +3591,14 @@ function increment() {
 }
 
 var types = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  boolean: boolean,
-  booleanish: booleanish,
-  commaOrSpaceSeparated: commaOrSpaceSeparated,
-  commaSeparated: commaSeparated,
-  number: number,
-  overloadedBoolean: overloadedBoolean,
-  spaceSeparated: spaceSeparated
+    __proto__: null,
+    boolean: boolean,
+    booleanish: booleanish,
+    commaOrSpaceSeparated: commaOrSpaceSeparated,
+    commaSeparated: commaSeparated,
+    number: number,
+    overloadedBoolean: overloadedBoolean,
+    spaceSeparated: spaceSeparated
 });
 
 /**
@@ -16517,16 +16546,16 @@ const disable = {
 };
 
 var defaultConstructs = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  attentionMarkers: attentionMarkers,
-  contentInitial: contentInitial,
-  disable: disable,
-  document: document$1,
-  flow: flow,
-  flowInitial: flowInitial,
-  insideSpan: insideSpan,
-  string: string,
-  text: text$3
+    __proto__: null,
+    attentionMarkers: attentionMarkers,
+    contentInitial: contentInitial,
+    disable: disable,
+    document: document$1,
+    flow: flow,
+    flowInitial: flowInitial,
+    insideSpan: insideSpan,
+    string: string,
+    text: text$3
 });
 
 /**
@@ -30392,13 +30421,13 @@ const TimingInfo = ({ timings, agentName, actualTotalTime, tokenUsage, cumulativ
     const totalTime = getTotalTime();
     // Expanded view
     if (isExpanded) {
-        return (jsxs(Card, { className: `border-t-0 rounded-t-none bg-gray-50/50 ${className}`, children: [jsx(CardHeader, { className: "pb-2", children: jsxs("div", { className: "flex items-center justify-between", children: [jsxs(CardTitle, { className: "text-sm font-medium flex items-center gap-2", children: [hasTimingData ? (jsxs(Fragment, { children: [jsx(BarChart3, { className: "w-4 h-4" }), "Performance Breakdown"] })) : (jsxs(Fragment, { children: [jsx(Hash, { className: "w-4 h-4" }), "Token Usage"] })), agentName && (jsx(Badge, { variant: "outline", className: "text-xs", children: agentName === "askRex" ? "Ask Rex" : "Ask Rex Test" }))] }), jsx(Button, { variant: "ghost", size: "sm", onClick: () => setIsExpanded(false), className: "h-8 w-8 p-0", children: jsx(ChevronUp, { className: "w-4 h-4" }) })] }) }), jsx(CardContent, { className: "pt-0 max-h-80 overflow-y-auto", children: jsxs("div", { className: "space-y-3", children: [hasTimingData && totalTime > 0 && (jsxs("div", { className: "flex items-center justify-between p-2 bg-white rounded border", children: [jsxs("div", { className: "flex items-center gap-2", children: [jsx(Clock, { className: "w-4 h-4 text-blue-500" }), jsx("span", { className: "font-medium text-sm", children: "Total Processing Time" })] }), jsx(Badge, { variant: getTimingColor(totalTime), className: "font-mono", children: formatTime(totalTime) })] })), hasTimingData && (jsx("div", { className: "space-y-2", children: sortedTimings.map(([key, value]) => {
+        return (jsxs(Card, { className: `border-t-0 rounded-t-none bg-gray-50/50 ${className}`, children: [jsx(CardHeader, { className: "pb-2", children: jsxs("div", { className: "flex items-center justify-between", children: [jsxs(CardTitle, { className: "text-sm font-medium flex items-center gap-2", children: [hasTimingData ? (jsxs(Fragment, { children: [jsx(ChartColumn, { className: "w-4 h-4" }), "Performance Breakdown"] })) : (jsxs(Fragment, { children: [jsx(Hash, { className: "w-4 h-4" }), "Token Usage"] })), agentName && (jsx(Badge, { variant: "outline", className: "text-xs", children: agentName === "askRex" ? "Ask Rex" : "Ask Rex Test" }))] }), jsx(Button, { variant: "ghost", size: "sm", onClick: () => setIsExpanded(false), className: "h-8 w-8 p-0", children: jsx(ChevronUp, { className: "w-4 h-4" }) })] }) }), jsx(CardContent, { className: "pt-0 max-h-80 overflow-y-auto", children: jsxs("div", { className: "space-y-3", children: [hasTimingData && totalTime > 0 && (jsxs("div", { className: "flex items-center justify-between p-2 bg-white rounded border", children: [jsxs("div", { className: "flex items-center gap-2", children: [jsx(Clock, { className: "w-4 h-4 text-blue-500" }), jsx("span", { className: "font-medium text-sm", children: "Total Processing Time" })] }), jsx(Badge, { variant: getTimingColor(totalTime), className: "font-mono", children: formatTime(totalTime) })] })), hasTimingData && (jsx("div", { className: "space-y-2", children: sortedTimings.map(([key, value]) => {
                                     const percentage = totalTime > 0 ? ((value / totalTime) * 100).toFixed(1) : "0";
                                     return (jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded border-l-2 border-gray-200", children: [jsxs("div", { className: "flex items-center gap-2 flex-1", children: [getTimingIcon(key), jsx("span", { className: "text-sm", children: getTimingLabel(key) }), jsx("div", { className: "flex-1 mx-2", children: jsx("div", { className: "w-full bg-gray-200 rounded-full h-1.5", children: jsx("div", { className: "bg-blue-500 h-1.5 rounded-full transition-all duration-300", style: { width: `${percentage}%` } }) }) }), jsxs("span", { className: "text-xs text-gray-500 min-w-10", children: [percentage, "%"] })] }), jsx(Badge, { variant: getTimingColor(value), className: "font-mono text-xs ml-2", children: formatTime(value) })] }, key));
                                 }) })), effectiveStreamingMetrics && (jsxs("div", { className: "space-y-2", children: [jsxs("h4", { className: "font-medium text-sm flex items-center gap-2", children: [jsx(Radio, { className: "w-4 h-4" }), "Streaming Performance"] }), jsxs("div", { className: "space-y-1", children: [jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Was Streamed" }), jsx(Badge, { variant: effectiveStreamingMetrics.wasStreamed ? "secondary" : "outline", className: "text-xs", children: effectiveStreamingMetrics.wasStreamed ? "Yes" : "No" })] }), effectiveStreamingMetrics.timeToFirstChunkMs && (jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Time to First Chunk" }), jsx(Badge, { variant: getTTFCColor(effectiveStreamingMetrics.timeToFirstChunkMs), className: "text-xs font-mono", children: formatTime(effectiveStreamingMetrics.timeToFirstChunkMs) })] })), effectiveStreamingMetrics.streamingDurationMs && (jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Streaming Duration" }), jsx(Badge, { variant: "outline", className: "text-xs font-mono", children: formatTime(effectiveStreamingMetrics.streamingDurationMs) })] })), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Chunks Sent" }), jsx(Badge, { variant: "outline", className: "text-xs", children: effectiveStreamingMetrics.chunkCount })] }), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Threshold" }), jsx(Badge, { variant: "outline", className: "text-xs", children: effectiveStreamingMetrics.streamingThreshold })] })] })] })), (effectiveTokenUsage || cumulativeTokenUsage) && (jsxs("div", { className: "space-y-2", children: [jsxs("h4", { className: "font-medium text-sm flex items-center gap-2", children: [jsx(Package, { className: "w-4 h-4" }), "Token Usage"] }), jsxs("div", { className: "space-y-1", children: [effectiveTokenUsage && (jsxs(Fragment, { children: [jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Input Tokens" }), jsx(Badge, { variant: "outline", className: "text-xs font-mono", children: formatTokens(effectiveTokenUsage.inputTokens) })] }), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Output Tokens" }), jsx(Badge, { variant: "outline", className: "text-xs font-mono", children: formatTokens(effectiveTokenUsage.outputTokens) })] }), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Current Response Total" }), jsx(Badge, { variant: getTokenColor(effectiveTokenUsage.totalTokens), className: "text-xs font-mono", children: formatTokens(effectiveTokenUsage.totalTokens) })] })] })), cumulativeTokenUsage && cumulativeTokenUsage.responseCount > 0 && (jsx(Fragment, { children: jsxs("div", { className: "border-t pt-2 mt-2", children: [jsxs("div", { className: "flex items-center justify-between p-2 bg-blue-50 rounded", children: [jsxs("span", { className: "text-sm font-medium", children: ["Session (", cumulativeTokenUsage.responseCount, ")"] }), jsx(Badge, { variant: getTokenColor(cumulativeTokenUsage.totalTokens), className: "text-xs font-mono", children: formatTokens(cumulativeTokenUsage.totalTokens) })] }), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Session Input Total" }), jsx(Badge, { variant: "outline", className: "text-xs font-mono", children: formatTokens(cumulativeTokenUsage.totalInputTokens) })] }), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Session Output Total" }), jsx(Badge, { variant: getTokenColor(cumulativeTokenUsage.totalOutputTokens), className: "text-xs font-mono", children: formatTokens(cumulativeTokenUsage.totalOutputTokens) })] })] }) }))] })] })), response && (jsxs("div", { className: "space-y-2", children: [jsxs("h4", { className: "font-medium text-sm flex items-center gap-2", children: [jsx(Database, { className: "w-4 h-4" }), "Search Results"] }), jsxs("div", { className: "space-y-1", children: [jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Sources Found" }), jsx(Badge, { variant: "outline", className: "text-xs", children: response.sources?.length || 0 })] }), jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Total Documents" }), jsx(Badge, { variant: "outline", className: "text-xs", children: response.totalDocuments || 0 })] }), response.confidence && (jsxs("div", { className: "flex items-center justify-between p-2 bg-white/70 rounded", children: [jsx("span", { className: "text-sm", children: "Confidence Score" }), jsxs(Badge, { variant: "outline", className: "text-xs", children: [Math.round(response.confidence * 100), "%"] })] }))] })] }))] }) })] }));
     }
     // Collapsed view - show compact summary
-    return (jsx(Card, { className: `border-t-0 rounded-t-none bg-gray-50/50 ${className}`, children: jsx(CardContent, { className: "p-3", children: jsxs("div", { className: "flex items-center gap-2 flex-wrap", children: [jsxs("div", { className: "flex items-center gap-1 text-xs text-gray-500", children: [jsx(BarChart3, { className: "w-3 h-3" }), jsx("span", { className: "font-medium", children: "Performance:" })] }), hasTimingData && totalTime > 0 && (jsxs(Badge, { variant: getTimingColor(totalTime), className: "text-xs flex items-center gap-1", children: [jsx(Clock, { className: "w-3 h-3" }), jsx("span", { children: "Total:" }), jsx("span", { className: "font-mono", children: formatTime(totalTime) })] })), hasTimingData && sortedTimings.slice(0, 2).map(([key, value]) => (jsxs(Badge, { variant: getTimingColor(value), className: "text-xs flex items-center gap-1", children: [getTimingIcon(key), jsxs("span", { className: "capitalize", children: [getTimingLabel(key), ":"] }), jsx("span", { className: "font-mono", children: formatTime(value) })] }, key))), effectiveTokenUsage && (jsxs(Badge, { variant: getTokenColor(effectiveTokenUsage.totalTokens), className: "text-xs flex items-center gap-1", children: [jsx(Package, { className: "w-3 h-3" }), jsx("span", { className: "font-mono", children: formatTokens(effectiveTokenUsage.totalTokens) })] })), cumulativeTokenUsage && cumulativeTokenUsage.responseCount > 0 && (jsxs(Badge, { variant: "outline", className: "text-xs flex items-center gap-1 h-5", children: [jsx(Layers, { className: "w-3 h-3" }), jsx("span", { className: "font-mono", children: formatTokens(cumulativeTokenUsage.totalTokens) }), jsxs("span", { className: "text-gray-500", children: ["(", cumulativeTokenUsage.responseCount, ")"] })] })), effectiveStreamingMetrics && (jsx(Badge, { variant: effectiveStreamingMetrics.wasStreamed ? "default" : "secondary", className: "text-xs flex items-center gap-1 h-5", children: effectiveStreamingMetrics.wasStreamed ? (jsxs(Fragment, { children: [jsx(Radio, { className: "w-3 h-3" }), jsxs("span", { children: ["Streamed (", effectiveStreamingMetrics.chunkCount, ")"] })] })) : (jsxs(Fragment, { children: [jsx(Package, { className: "w-3 h-3" }), jsx("span", { children: "Buffered" })] })) })), effectiveStreamingMetrics?.timeToFirstChunkMs !== undefined && effectiveStreamingMetrics.timeToFirstChunkMs < 500 && (jsxs(Badge, { variant: getTTFCColor(effectiveStreamingMetrics.timeToFirstChunkMs), className: "text-xs flex items-center gap-1 h-5", children: [jsx(Clock, { className: "w-3 h-3" }), jsxs("span", { children: ["TTFC: ", formatTime(effectiveStreamingMetrics.timeToFirstChunkMs)] })] })), agentName && (jsx(Badge, { variant: "outline", className: "text-xs", children: agentName === "askRex" ? "Ask Rex" : "Ask Rex Test" })), jsx(Button, { variant: "ghost", size: "sm", onClick: () => setIsExpanded(true), className: "h-6 w-6 p-0 ml-1", children: jsx(ChevronDown, { className: "w-3 h-3" }) })] }) }) }));
+    return (jsx(Card, { className: `border-t-0 rounded-t-none bg-gray-50/50 ${className}`, children: jsx(CardContent, { className: "p-3", children: jsxs("div", { className: "flex items-center gap-2 flex-wrap", children: [jsxs("div", { className: "flex items-center gap-1 text-xs text-gray-500", children: [jsx(ChartColumn, { className: "w-3 h-3" }), jsx("span", { className: "font-medium", children: "Performance:" })] }), hasTimingData && totalTime > 0 && (jsxs(Badge, { variant: getTimingColor(totalTime), className: "text-xs flex items-center gap-1", children: [jsx(Clock, { className: "w-3 h-3" }), jsx("span", { children: "Total:" }), jsx("span", { className: "font-mono", children: formatTime(totalTime) })] })), hasTimingData && sortedTimings.slice(0, 2).map(([key, value]) => (jsxs(Badge, { variant: getTimingColor(value), className: "text-xs flex items-center gap-1", children: [getTimingIcon(key), jsxs("span", { className: "capitalize", children: [getTimingLabel(key), ":"] }), jsx("span", { className: "font-mono", children: formatTime(value) })] }, key))), effectiveTokenUsage && (jsxs(Badge, { variant: getTokenColor(effectiveTokenUsage.totalTokens), className: "text-xs flex items-center gap-1", children: [jsx(Package, { className: "w-3 h-3" }), jsx("span", { className: "font-mono", children: formatTokens(effectiveTokenUsage.totalTokens) })] })), cumulativeTokenUsage && cumulativeTokenUsage.responseCount > 0 && (jsxs(Badge, { variant: "outline", className: "text-xs flex items-center gap-1 h-5", children: [jsx(Layers, { className: "w-3 h-3" }), jsx("span", { className: "font-mono", children: formatTokens(cumulativeTokenUsage.totalTokens) }), jsxs("span", { className: "text-gray-500", children: ["(", cumulativeTokenUsage.responseCount, ")"] })] })), effectiveStreamingMetrics && (jsx(Badge, { variant: effectiveStreamingMetrics.wasStreamed ? "default" : "secondary", className: "text-xs flex items-center gap-1 h-5", children: effectiveStreamingMetrics.wasStreamed ? (jsxs(Fragment, { children: [jsx(Radio, { className: "w-3 h-3" }), jsxs("span", { children: ["Streamed (", effectiveStreamingMetrics.chunkCount, ")"] })] })) : (jsxs(Fragment, { children: [jsx(Package, { className: "w-3 h-3" }), jsx("span", { children: "Buffered" })] })) })), effectiveStreamingMetrics?.timeToFirstChunkMs !== undefined && effectiveStreamingMetrics.timeToFirstChunkMs < 500 && (jsxs(Badge, { variant: getTTFCColor(effectiveStreamingMetrics.timeToFirstChunkMs), className: "text-xs flex items-center gap-1 h-5", children: [jsx(Clock, { className: "w-3 h-3" }), jsxs("span", { children: ["TTFC: ", formatTime(effectiveStreamingMetrics.timeToFirstChunkMs)] })] })), agentName && (jsx(Badge, { variant: "outline", className: "text-xs", children: agentName === "askRex" ? "Ask Rex" : "Ask Rex Test" })), jsx(Button, { variant: "ghost", size: "sm", onClick: () => setIsExpanded(true), className: "h-6 w-6 p-0 ml-1", children: jsx(ChevronDown, { className: "w-3 h-3" }) })] }) }) }));
 };
 
 // src/primitive.tsx
@@ -36599,9 +36628,16 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
     const [firestoreConfig, setFirestoreConfig] = useState({});
     const [configLoading, setConfigLoading] = useState(false);
     const [configLoaded, setConfigLoaded] = useState(false);
-    // Load config from provider if available
+    // Load config from provider if available.
+    //
+    // Gate on `configLoaded`, not on the config being empty. The provider can
+    // legitimately resolve to {} — and can fail outright, which is what happens
+    // when the Firestore read is denied — leaving the config empty forever. With
+    // an emptiness guard the effect re-ran on every `configLoading` flip and
+    // refetched indefinitely: observed at ~19 requests/second, unbounded, for as
+    // long as the page stayed open.
     React__default.useEffect(() => {
-        if (provider.getChatbotConfig && !configLoading && Object.keys(firestoreConfig).length === 0) {
+        if (provider.getChatbotConfig && !configLoading && !configLoaded) {
             console.log('[AIChatbot] Loading config from provider...');
             setConfigLoading(true);
             provider.getChatbotConfig()
@@ -36617,10 +36653,12 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                 setConfigLoaded(true); // Still mark as loaded even on error
             });
         }
-    }, [provider, configLoading, firestoreConfig]);
+    }, [provider, configLoading, configLoaded]);
+    // Same shape as the config effect above, and gated the same way: an empty
+    // result or a failed fetch must not re-arm the guard.
     React__default.useEffect(() => {
         // Only load from provider if no questions in config and provider has getQuestions
-        if (!config.questions && provider.getQuestions && !questionsLoading && loadedQuestions.length === 0) {
+        if (!config.questions && provider.getQuestions && !questionsLoading && !questionsLoaded) {
             console.log('[AIChatbot] Loading questions from provider...');
             setQuestionsLoading(true);
             provider.getQuestions()
@@ -36636,7 +36674,7 @@ function AIChatbot({ provider, config = {}, onMessageSent, onMessageReceived, on
                 setQuestionsLoaded(true); // Still mark as loaded even on error
             });
         }
-    }, [config.questions, provider, questionsLoading, loadedQuestions.length]);
+    }, [config.questions, provider, questionsLoading, questionsLoaded]);
     // Use loaded questions if config doesn't provide them
     // If provider has getQuestions and we're waiting for them to load, return undefined to prevent fallback flash
     const questionsToUse = config.questions
