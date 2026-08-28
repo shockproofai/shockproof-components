@@ -1,6 +1,5 @@
 // Custom hook for managing chat state
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import type { 
   ChatMessage, 
   ChatProvider, 
@@ -66,7 +65,7 @@ export function useChatState({
   // Initialize session
   useEffect(() => {
     if (!sessionId) {
-      setSessionId(uuidv4());
+      setSessionId(crypto.randomUUID());
     }
   }, [sessionId]);
   
@@ -95,7 +94,7 @@ export function useChatState({
       // Use regular sendMessage as fallback
       const context: ChatContext = {
         conversationHistory: messages.filter(m => !m.isLoading),
-        sessionId: sessionId || uuidv4(),
+        sessionId: sessionId || crypto.randomUUID(),
         userId: user?.id,
       };
       
@@ -104,7 +103,7 @@ export function useChatState({
           setIsLoading(false);
           
           const assistantMessage: ChatMessage = {
-            id: uuidv4(),
+            id: crypto.randomUUID(),
             content: response.answer,
             role: 'assistant',
             timestamp: new Date(),
@@ -198,7 +197,7 @@ export function useChatState({
       
       // Add user message immediately
       const userMessage: ChatMessage = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         content: messageText.trim(),
         role: 'user',
         timestamp: new Date(),
@@ -206,7 +205,7 @@ export function useChatState({
       
       // Add loading assistant message
       const loadingMessage: ChatMessage = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         content: '',
         role: 'assistant',
         timestamp: new Date(),
@@ -221,7 +220,7 @@ export function useChatState({
       // Prepare context
       const context: ChatContext = {
         conversationHistory: messages.filter(m => !m.isLoading),
-        sessionId: sessionId || uuidv4(),
+        sessionId: sessionId || crypto.randomUUID(),
         userId: user?.id,
       };
       
@@ -259,7 +258,7 @@ export function useChatState({
             setMessages(prev => {
               const filtered = prev.filter(msg => !msg.isLoading);
               const assistantMessage: ChatMessage = {
-                id: uuidv4(),
+                id: crypto.randomUUID(),
                 content: response.answer,
                 role: 'assistant',
                 timestamp: new Date(),
@@ -292,7 +291,7 @@ export function useChatState({
         setMessages(prev => {
           const filtered = prev.filter(msg => !msg.isLoading);
           const assistantMessage: ChatMessage = {
-            id: uuidv4(),
+            id: crypto.randomUUID(),
             content: response.answer,
             role: 'assistant',
             timestamp: new Date(),
@@ -325,7 +324,7 @@ export function useChatState({
       setMessages(prev => {
         const filtered = prev.filter(msg => !msg.isLoading);
         const errorMessage: ChatMessage = {
-          id: uuidv4(),
+          id: crypto.randomUUID(),
           content: `Error: ${error.message}`,
           role: 'assistant',
           timestamp: new Date(),
@@ -410,7 +409,7 @@ export function useChatState({
    * Start a new session
    */
   const startNewSession = useCallback(() => {
-    setSessionId(uuidv4());
+    setSessionId(crypto.randomUUID());
     clearMessages();
   }, [clearMessages]);
   
